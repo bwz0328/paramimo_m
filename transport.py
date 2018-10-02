@@ -1980,7 +1980,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 self._expect_packet(MSG_KEXINIT)
 
                 while self.active:
-                    print("run loop.", threading.currentThread().getName())
+                    #print("run loop.", threading.currentThread().getName())
                     if self.packetizer.need_rekey() and not self.in_kex:
                         self._send_kex_init()
                     try:
