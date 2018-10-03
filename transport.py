@@ -1982,6 +1982,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 while self.active:
                     print("run loop1.", threading.currentThread().getName())
                     if self.packetizer.need_rekey() and not self.in_kex:
+                        print("run  1!")
                         self._send_kex_init()
                     try:
                         ptype, m = self.packetizer.read_message()
@@ -2006,14 +2007,16 @@ class Transport(threading.Thread, ClosingContextManager):
                         if (ptype >= 30) and (ptype <= 41):
                             self.kex_engine.parse_next(ptype, m)
                             continue
-
+                    print("run  2!")
                     if ptype in self._handler_table:
+                        print("run  3!")
                         error_msg = self._ensure_authed(ptype, m)
                         if error_msg:
                             self._send_message(error_msg)
                         else:
                             self._handler_table[ptype](self, m)
                     elif ptype in self._channel_handler_table:
+                        print("run  4!")
                         chanid = m.get_int()
                         chan = self._channels.get(chanid)
                         if chan is not None:
@@ -2037,11 +2040,13 @@ class Transport(threading.Thread, ClosingContextManager):
                         self.auth_handler is not None
                         and ptype in self.auth_handler._handler_table
                     ):
+                        print("run  5!")
                         handler = self.auth_handler._handler_table[ptype]
                         handler(self.auth_handler, m)
                         if len(self._expected_packet) > 0:
                             continue
                     else:
+                        print("run  6!")
                         # Respond with "I don't implement this particular
                         # message type" message (unless the message type was
                         # itself literally MSG_UNIMPLEMENTED, in which case, we
