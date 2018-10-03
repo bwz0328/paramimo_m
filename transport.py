@@ -1980,7 +1980,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 self._expect_packet(MSG_KEXINIT)
 
                 while self.active:
-                    #print("run loop.", threading.currentThread().getName())
+                    print("run loop1.", threading.currentThread().getName())
                     if self.packetizer.need_rekey() and not self.in_kex:
                         self._send_kex_init()
                     try:
@@ -2057,6 +2057,7 @@ class Transport(threading.Thread, ClosingContextManager):
                             msg.add_int(m.seqno)
                             self._send_message(msg)
                     self.packetizer.complete_handshake()
+                print("run while end !")
             except SSHException as e:
                 self._log(ERROR, "Exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
