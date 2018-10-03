@@ -1985,7 +1985,9 @@ class Transport(threading.Thread, ClosingContextManager):
                         print("run  1!")
                         self._send_kex_init()
                     try:
+                        print(" ==> readmsg")
                         ptype, m = self.packetizer.read_message()
+                        print(" ==> get msg")
                     except NeedRekeyException:
                         continue
                     if ptype == MSG_IGNORE:
