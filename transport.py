@@ -2133,6 +2133,13 @@ class Transport(threading.Thread, ClosingContextManager):
         timeout 1s one time, ++ timer,
         deal timer with current statue.
         '''
+    def _deal_fsm_set(self, fsm):
+        print("[_deal_fsm_set] : fsm %u to %u", %(self._deal_state, fsm))
+        self._deal_state = fsm
+    def _deal_fsm(self):
+        if (self._deal_state == STATE_BANNER_S):
+            self._check_banner_noblocking()
+        
     def run_for_noblocking(self, if_init = 0, if_timeout = False):
         # (use the exposed "run" method, because if we specify a thread target
         # of a private method, threading.Thread will keep a reference to it
@@ -2142,6 +2149,8 @@ class Transport(threading.Thread, ClosingContextManager):
         # Hold reference to 'sys' so we can test sys.modules to detect
         # interpreter shutdown.
         print("[run_for_noblocking] :come into here")
+        self._timeout_deal()
+        self._deal_fsm()
         if if_init == 1:
             self.sys = sys
             _active_threads.append(self)
@@ -2159,7 +2168,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 )  # noqa
                 #-m by bwz
                 if self._deal_state == 0:
-                    self._deal_state = STATE_BANNER_S
+                    self._deal_fsm_set(STATE_BANNER_S)
                     self._deal_para = 0
                     self._deal_timeouter = self.banner_timeout
                 #self._check_banner()
@@ -2422,6 +2431,7 @@ class Transport(threading.Thread, ClosingContextManager):
                     raise SSHException(msg.format(version))
                 msg = "Connected (version {}, client {})".format(version, client)
                 self._log(INFO, msg)
+                self._deal_fsm_set(STATE_BANNER_S_NEXT)
             else:
                 self._deal_para = self._deal_para + 1
                 self._deal_timeouter = 2
