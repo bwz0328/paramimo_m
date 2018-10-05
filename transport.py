@@ -2134,7 +2134,7 @@ class Transport(threading.Thread, ClosingContextManager):
         deal timer with current statue.
         '''
     def _deal_fsm_set(self, fsm):
-        print("[_deal_fsm_set] : fsm %u to %u", %(self._deal_state, fsm))
+        print("[_deal_fsm_set] : fsm %u to %u"  %(self._deal_state, fsm))
         self._deal_state = fsm
     def _deal_fsm(self):
         if (self._deal_state == STATE_BANNER_S):
