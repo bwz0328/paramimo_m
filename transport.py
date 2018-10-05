@@ -2165,13 +2165,13 @@ class Transport(threading.Thread, ClosingContextManager):
                 self._log(DEBUG, "starting thread (client mode): {}".format(tid))
         try:
             try:
-                self.packetizer.write_all(b(self.local_version + "\r\n"))
-                self._log(
-                    DEBUG,
-                    "Local version/idstring: {}".format(self.local_version),
-                )  # noqa
                 #-m by bwz
                 if self._deal_state == 0:
+                    self.packetizer.write_all(b(self.local_version + "\r\n"))
+                    self._log(
+                        DEBUG,
+                        "Local version/idstring: {}".format(self.local_version),
+                    )  # noqa                
                     self._deal_fsm_set(STATE_BANNER_S)
                     self._deal_para = 0
                     self._deal_timeouter = self.banner_timeout
