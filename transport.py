@@ -593,6 +593,8 @@ class Transport(threading.Thread, ClosingContextManager):
         self.run_for_noblocking(if_init = 1)
         #-m by bwz
         max_time = time.time() + timeout if timeout is not None else None
+        '''
+        #need to change an other way to find if timeout!
         while True:
             print("[start_client] :runing here")
             event.wait(0.1)
@@ -605,6 +607,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 timeout is not None and time.time() >= max_time
             ):
                 break
+         '''
 
     def start_server(self, event=None, server=None):
         """
