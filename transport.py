@@ -594,6 +594,7 @@ class Transport(threading.Thread, ClosingContextManager):
         #-m by bwz
         max_time = time.time() + timeout if timeout is not None else None
         while True:
+            print("[start_client] :runing here")
             event.wait(0.1)
             if not self.active:
                 e = self.get_exception()
