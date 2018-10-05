@@ -2111,7 +2111,7 @@ class Transport(threading.Thread, ClosingContextManager):
             # appears to still exist.
             if self.sys.modules is not None:
                 raise
-    def run_with_read()
+    def run_with_read(self):
         try:
             try:
                 while self.active:
