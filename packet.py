@@ -559,12 +559,14 @@ class Packetizer(object):
         while True:
             try:
                 x = self.__socket.recv(128)
+                print("read" ,x)
                 if len(x) == 0:
                     raise EOFError()
                 break
             except socket.timeout:
                 pass
             except EnvironmentError as e:
+                print(str(e))
                 if first_arg(e) == errno.EINTR:
                     pass
                 else:
