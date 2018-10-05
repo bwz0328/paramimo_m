@@ -2406,7 +2406,7 @@ class Transport(threading.Thread, ClosingContextManager):
             raise SSHException('Indecipherable protocol version "' + self.__remainder + '"')
         else:
             try:
-                buf = self.packetizer.readline(0)
+                buf = self.packetizer.readline(0.5)
             except ProxyCommandFailure:
                 raise
             except Exception as e:
