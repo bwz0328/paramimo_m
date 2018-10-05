@@ -2127,7 +2127,7 @@ class Transport(threading.Thread, ClosingContextManager):
             # appears to still exist.
             if self.sys.modules is not None:
                 raise
-    def _timeout_deal(self)
+    def _timeout_deal(self):
         pass
         '''
         timeout 1s one time, ++ timer,
