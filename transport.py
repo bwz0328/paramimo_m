@@ -2213,7 +2213,7 @@ class Transport(threading.Thread, ClosingContextManager):
                         pass
                     elif ptype == MSG_DISCONNECT:
                         self._parse_disconnect(m)
-                        break
+                        #break
                     elif ptype == MSG_DEBUG:
                         self._parse_debug(m)
                         #continue
@@ -2258,7 +2258,7 @@ class Transport(threading.Thread, ClosingContextManager):
                                     chanid
                                 ),
                             )
-                            break
+                            #break
                     elif (
                         self.auth_handler is not None
                         and ptype in self.auth_handler._handler_table
