@@ -124,6 +124,10 @@ import atexit
 atexit.register(_join_lingering_threads)
 
 
+STATE_BANNER_S = 1
+STATE_BANNER_S_NEXT = 2
+STATE_S_WAITING_PACKET = 100
+
 class Transport(threading.Thread, ClosingContextManager):
     """
     An SSH Transport attaches to a stream (usually a socket), negotiates an
@@ -137,6 +141,12 @@ class Transport(threading.Thread, ClosingContextManager):
 
     _ENCRYPT = object()
     _DECRYPT = object()
+
+    # define by bwz
+    _deal_state = 0
+    _deal_timeouter = 0
+    _deal_para = None
+    # define by bwz end
 
     _PROTO_ID = "2.0"
     _CLIENT_ID = "paramiko_{}".format(paramiko.__version__)
@@ -578,9 +588,10 @@ class Transport(threading.Thread, ClosingContextManager):
 
         # synchronous, wait for a result
         self.completion_event = event = threading.Event()
-        #test1 = raw_input("after call event!")
-        self.start()
-        #test1 = raw_input("after start!")
+        #-m by bwz
+        #self.start()
+        self.run_for_noblocking(if_init = 1)
+        #-m by bwz
         max_time = time.time() + timeout if timeout is not None else None
         while True:
             event.wait(0.1)
@@ -1967,7 +1978,12 @@ class Transport(threading.Thread, ClosingContextManager):
                     DEBUG,
                     "Local version/idstring: {}".format(self.local_version),
                 )  # noqa
+                #-m by bwz
+                #self._deal_state = STATE_BANNER_S
+                #_deal_para = 0
+                #self._deal_timeouter = self.banner_timeout
                 self._check_banner()
+                #-m by bwz end
                 # The above is actually very much part of the handshake, but
                 # sometimes the banner can be read but the machine is not
                 # responding, for example when the remote ssh daemon is loaded
@@ -2111,11 +2127,77 @@ class Transport(threading.Thread, ClosingContextManager):
             # appears to still exist.
             if self.sys.modules is not None:
                 raise
-    def run_with_read(self):
+    def _timeout_deal(self)
+        pass
+        '''
+        timeout 1s one time, ++ timer,
+        deal timer with current statue.
+        '''
+    def run_for_noblocking(self, if_init = 0, if_timeout = False):
+        # (use the exposed "run" method, because if we specify a thread target
+        # of a private method, threading.Thread will keep a reference to it
+        # indefinitely, creating a GC cycle and not letting Transport ever be
+        # GC'd. it's a bug in Thread.)
+
+        # Hold reference to 'sys' so we can test sys.modules to detect
+        # interpreter shutdown.
+        print("[run_for_noblocking] :come into here")
+        if if_init == 1:
+            self.sys = sys
+            _active_threads.append(self)
+            tid = hex(long(id(self)) & xffffffff)
+            if self.server_mode:
+                self._log(DEBUG, "starting thread (server mode): {}".format(tid))
+            else:
+                self._log(DEBUG, "starting thread (client mode): {}".format(tid))
         try:
             try:
-                while self.active:
-                    print("run loop2.", threading.currentThread().getName())
+                self.packetizer.write_all(b(self.local_version + "\r\n"))
+                self._log(
+                    DEBUG,
+                    "Local version/idstring: {}".format(self.local_version),
+                )  # noqa
+                #-m by bwz
+                if self._deal_state == 0:
+                    self._deal_state = STATE_BANNER_S
+                    self._deal_para = 0
+                    self._deal_timeouter = self.banner_timeout
+                #self._check_banner()
+                #-m by bwz end
+                # The above is actually very much part of the handshake, but
+                # sometimes the banner can be read but the machine is not
+                # responding, for example when the remote ssh daemon is loaded
+                # in to memory but we can not read from the disk/spawn a new
+                # shell.
+                # Make sure we can specify a timeout for the initial handshake.
+                # Re-use the banner timeout for now.
+                if self._deal_state == STATE_BANNER_S_NEXT:
+                    self.packetizer.start_handshake(self.handshake_timeout)
+                    self._send_kex_init()
+                    self._expect_packet(MSG_KEXINIT)
+                if self._deal_state != STATE_S_WAITING_PACKET:
+                    return
+                if not self.active:
+                    _active_threads.remove(self)
+                    for chan in list(self._channels.values()):
+                        chan._unlink()
+                    if self.active:
+                        self.active = False
+                        self.packetizer.close()
+                        if self.completion_event is not None:
+                            self.completion_event.set()
+                        if self.auth_handler is not None:
+                            self.auth_handler.abort()
+                        for event in self.channel_events.values():
+                            event.set()
+                        try:
+                            self.lock.acquire()
+                            self.server_accept_cv.notify()
+                        finally:
+                            self.lock.release()
+                    self.sock.close()
+                else:
+                    #print("run loop2.", threading.currentThread().getName())
                     if self.packetizer.need_rekey() and not self.in_kex:
                         print("run  1!")
                         self._send_kex_init()
@@ -2124,15 +2206,18 @@ class Transport(threading.Thread, ClosingContextManager):
                         ptype, m = self.packetizer.read_message()
                         print(" ==> get msg")
                     except NeedRekeyException:
-                        continue
+                        #continue
+                        pass
                     if ptype == MSG_IGNORE:
-                        continue
+                        #continue
+                        pass
                     elif ptype == MSG_DISCONNECT:
                         self._parse_disconnect(m)
                         break
                     elif ptype == MSG_DEBUG:
                         self._parse_debug(m)
-                        continue
+                        #continue
+                        pass
                     if len(self._expected_packet) > 0:
                         if ptype not in self._expected_packet:
                             raise SSHException(
@@ -2143,7 +2228,8 @@ class Transport(threading.Thread, ClosingContextManager):
                         self._expected_packet = tuple()
                         if (ptype >= 30) and (ptype <= 41):
                             self.kex_engine.parse_next(ptype, m)
-                            continue
+                            #continue
+                            pass
                     print("run  2!")
                     if ptype in self._handler_table:
                         print("run  3!")
@@ -2181,7 +2267,8 @@ class Transport(threading.Thread, ClosingContextManager):
                         handler = self.auth_handler._handler_table[ptype]
                         handler(self.auth_handler, m)
                         if len(self._expected_packet) > 0:
-                            continue
+                            #continue
+                            pass
                     else:
                         print("run  6!")
                         # Respond with "I don't implement this particular
@@ -2221,24 +2308,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 self._log(ERROR, "Unknown exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
-            _active_threads.remove(self)
-            for chan in list(self._channels.values()):
-                chan._unlink()
-            if self.active:
-                self.active = False
-                self.packetizer.close()
-                if self.completion_event is not None:
-                    self.completion_event.set()
-                if self.auth_handler is not None:
-                    self.auth_handler.abort()
-                for event in self.channel_events.values():
-                    event.set()
-                try:
-                    self.lock.acquire()
-                    self.server_accept_cv.notify()
-                finally:
-                    self.lock.release()
-            self.sock.close()
+
         except:
             # Don't raise spurious 'NoneType has no attribute X' errors when we
             # wake up during interpreter shutdown. Or rather -- raise
@@ -2246,7 +2316,6 @@ class Transport(threading.Thread, ClosingContextManager):
             # appears to still exist.
             if self.sys.modules is not None:
                 raise
-
                 
     def _log_agreement(self, which, local, remote):
         # Log useful, non-duplicative line re: an agreed-upon algorithm.
@@ -2316,6 +2385,49 @@ class Transport(threading.Thread, ClosingContextManager):
             raise SSHException(msg.format(version))
         msg = "Connected (version {}, client {})".format(version, client)
         self._log(INFO, msg)
+
+    #add by bwz
+    def _check_banner_noblocking(self):
+        # this is slow, but we only have to do it once
+        if self._deal_para > 99:
+            raise SSHException('Indecipherable protocol version "' + self.__remainder + '"')
+        else:
+            try:
+                buf = self.packetizer.readline(0)
+            except ProxyCommandFailure:
+                raise
+            except Exception as e:
+                raise SSHException(
+                    "Error reading SSH protocol banner" + str(e)
+                )
+            if buf[:4] == "SSH-":
+                self._deal_state = 0
+                self._deal_para = 0
+                self._deal_timeouter = 0
+                self._log(DEBUG, "Banner: " + buf)
+
+                self.remote_version = buf
+                self._log(DEBUG, "Remote version/idstring: {}".format(buf))
+                i = buf.find(" ")
+                if i >= 0:
+                    buf = buf[:i]
+                # parse out version string and make sure it matches
+                segs = buf.split("-", 2)
+                if len(segs) < 3:
+                    raise SSHException("Invalid SSH banner")
+                version = segs[1]
+                client = segs[2]
+                if version != "1.99" and version != "2.0":
+                    msg = "Incompatible version ({} instead of 2.0)"
+                    raise SSHException(msg.format(version))
+                msg = "Connected (version {}, client {})".format(version, client)
+                self._log(INFO, msg)
+            else:
+                self._deal_para = self._deal_para + 1
+                self._deal_timeouter = 2
+                # state not change , waiting data
+                return
+            
 
     def _send_kex_init(self):
         """
