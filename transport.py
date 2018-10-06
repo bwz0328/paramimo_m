@@ -126,7 +126,10 @@ atexit.register(_join_lingering_threads)
 STATE_INIT_S   = 0
 STATE_BANNER_S = 1
 STATE_BANNER_S_NEXT = 2
+STATE_IN_KEX_S = 3
+STATE_IN_KEX_S_NEXT = 4
 STATE_S_WAITING_PACKET = 100
+
 
 class Transport(threading.Thread, ClosingContextManager):
     """
@@ -2068,7 +2071,7 @@ class Transport(threading.Thread, ClosingContextManager):
                     try:
                         print(" ==> readmsg")
                         ptype, m = self.packetizer.read_message()
-                        print(" ==> get msg")
+                        print(" ==> get msg :type[", ptype, "] data :", m)
                     except NeedRekeyException:
                         continue
                     if ptype == MSG_IGNORE:
@@ -2227,9 +2230,10 @@ class Transport(threading.Thread, ClosingContextManager):
             else:
                 self._log(DEBUG, "starting thread (client mode): {}".format(tid))
         try:
+            if_close = False
             try:
                 #-m by bwz
-                if self._deal_fsm_get == 0:
+                if self._deal_fsm_get() == STATE_INIT_S:
                     self.packetizer.write_all(b(self.local_version + "\r\n"))
                     self._log(
                         DEBUG,
@@ -2247,33 +2251,15 @@ class Transport(threading.Thread, ClosingContextManager):
                 # shell.
                 # Make sure we can specify a timeout for the initial handshake.
                 # Re-use the banner timeout for now.
-                if self._deal_state == STATE_BANNER_S_NEXT:
-                    self.packetizer.start_handshake(self.handshake_timeout)
+                if self._deal_fsm_get() == STATE_BANNER_S_NEXT:
+                    #headshake  timer  find  a way to  deal with it 
+                    #self.packetizer.start_handshake(self.handshake_timeout)
                     self._send_kex_init()
                     self._expect_packet(MSG_KEXINIT)
-                if self._deal_state != STATE_S_WAITING_PACKET:
+                    self._deal_fsm_set(STATE_S_WAITING_PACKET)
+                if self._deal_fsm_get() != STATE_S_WAITING_PACKET:
                     return
-                if not self.active:
-                    _active_threads.remove(self)
-                    for chan in list(self._channels.values()):
-                        chan._unlink()
-                    if self.active:
-                        self.active = False
-                        self.packetizer.close()
-                        if self.completion_event is not None:
-                            self.completion_event.set()
-                        if self.auth_handler is not None:
-                            self.auth_handler.abort()
-                        for event in self.channel_events.values():
-                            event.set()
-                        try:
-                            self.lock.acquire()
-                            self.server_accept_cv.notify()
-                        finally:
-                            self.lock.release()
-                    self.sock.close()
-                else:
-                    #print("run loop2.", threading.currentThread().getName())
+                if self.active:
                     if self.packetizer.need_rekey() and not self.in_kex:
                         print("run  1!")
                         self._send_kex_init()
@@ -2284,11 +2270,14 @@ class Transport(threading.Thread, ClosingContextManager):
                     except NeedRekeyException:
                         #continue
                         pass
+
+                    #deal by type
                     if ptype == MSG_IGNORE:
                         #continue
                         pass
                     elif ptype == MSG_DISCONNECT:
                         self._parse_disconnect(m)
+                        if_close = True
                         #break
                     elif ptype == MSG_DEBUG:
                         self._parse_debug(m)
@@ -2296,6 +2285,7 @@ class Transport(threading.Thread, ClosingContextManager):
                         pass
                     if len(self._expected_packet) > 0:
                         if ptype not in self._expected_packet:
+                            if_close = True
                             raise SSHException(
                                 "Expecting packet from {!r}, got {:d}".format(
                                     self._expected_packet, ptype
@@ -2384,6 +2374,25 @@ class Transport(threading.Thread, ClosingContextManager):
                 self._log(ERROR, "Unknown exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
+            if (if_close):
+                _active_threads.remove(self)
+                for chan in list(self._channels.values()):
+                    chan._unlink()
+                if self.active:
+                    self.active = False
+                    self.packetizer.close()
+                    if self.completion_event is not None:
+                        self.completion_event.set()
+                    if self.auth_handler is not None:
+                        self.auth_handler.abort()
+                    for event in self.channel_events.values():
+                        event.set()
+                    try:
+                        self.lock.acquire()
+                        self.server_accept_cv.notify()
+                    finally:
+                        self.lock.release()
+                self.sock.close()
 
         except:
             # Don't raise spurious 'NoneType has no attribute X' errors when we
@@ -2561,6 +2570,64 @@ class Transport(threading.Thread, ClosingContextManager):
         # save a copy for later (needed to compute a hash)
         self.local_kex_init = m.asbytes()
         self._send_message(m)
+
+
+    def _send_kex_init_noblocking(self):
+        """
+        announce to the other side that we'd like to negotiate keys, and what
+        kind of key negotiation we support.
+        """
+        self.clear_to_send_lock.acquire()
+        try:
+            self.clear_to_send.clear()
+        finally:
+            self.clear_to_send_lock.release()
+        self.gss_kex_used = False
+        self.in_kex = True
+        if self.server_mode:
+            mp_required_prefix = "diffie-hellman-group-exchange-sha"
+            kex_mp = [
+                k
+                for k in self._preferred_kex
+                if k.startswith(mp_required_prefix)
+            ]
+            if (self._modulus_pack is None) and (len(kex_mp) > 0):
+                # can't do group-exchange if we don't have a pack of potential
+                # primes
+                pkex = [
+                    k
+                    for k in self.get_security_options().kex
+                    if not k.startswith(mp_required_prefix)
+                ]
+                self.get_security_options().kex = pkex
+            available_server_keys = list(
+                filter(
+                    list(self.server_key_dict.keys()).__contains__,
+                    self._preferred_keys,
+                )
+            )
+        else:
+            available_server_keys = self._preferred_keys
+
+        m = Message()
+        m.add_byte(cMSG_KEXINIT)
+        m.add_bytes(os.urandom(16))
+        m.add_list(self._preferred_kex)
+        m.add_list(available_server_keys)
+        m.add_list(self._preferred_ciphers)
+        m.add_list(self._preferred_ciphers)
+        m.add_list(self._preferred_macs)
+        m.add_list(self._preferred_macs)
+        m.add_list(self._preferred_compression)
+        m.add_list(self._preferred_compression)
+        m.add_string(bytes())
+        m.add_string(bytes())
+        m.add_boolean(False)
+        m.add_int(0)
+        # save a copy for later (needed to compute a hash)
+        self.local_kex_init = m.asbytes()
+        self._send_message(m)
+        self._deal_fsm_set(STATE_IN_KEX_S_NEXT)
 
     def _parse_kex_init(self, m):
         m.get_bytes(16)  # cookie, discarded
