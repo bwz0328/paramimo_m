@@ -650,7 +650,7 @@ class Transport(threading.Thread, ClosingContextManager):
             `.SSHException` -- if negotiation fails (and no ``event`` was
             passed in)
         """
-        print(sys._getframe().f_code.co_name)
+        print("func Name ", sys._getframe().f_code.co_name)
         self.active = True
         if event is not None:
             # async, return immediately and let the app poll for completion
