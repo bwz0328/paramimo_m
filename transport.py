@@ -152,6 +152,7 @@ class Transport(threading.Thread, ClosingContextManager):
     _fun_todo_list = []
     _fun_doing = None
     _fun_if_waiting = False
+    _fun_call_from_callback = False
     # define by bwz end
 
     _PROTO_ID = "2.0"
@@ -550,6 +551,13 @@ class Transport(threading.Thread, ClosingContextManager):
         # And set attribute for reference later.
         self.gss_host = gss_host
 
+    def insert_func(self, funcName, funcPara):
+        if (self._fun_doing == None):
+            self._fun_doing = {"funcName":funcName, "funcPara":funcPara}
+            return True
+        else:
+            self._fun_todo_list.append({"funcName":funcName, "funcPara":funcPara})
+            return False
     def start_client_noblocking(self, event=None, timeout=None):
         """
         Negotiate a new SSH2 session as a client.  This is the first step after
@@ -585,6 +593,7 @@ class Transport(threading.Thread, ClosingContextManager):
             `.SSHException` -- if negotiation fails (and no ``event`` was
             passed in)
         """
+        
         self.active = True
         if event is not None:
             # async, return immediately and let the app poll for completion
