@@ -123,7 +123,7 @@ import atexit
 
 atexit.register(_join_lingering_threads)
 
-
+STATE_INIT_S   = 0
 STATE_BANNER_S = 1
 STATE_BANNER_S_NEXT = 2
 STATE_S_WAITING_PACKET = 100
@@ -143,7 +143,7 @@ class Transport(threading.Thread, ClosingContextManager):
     _DECRYPT = object()
 
     # define by bwz
-    _deal_state = 0
+    _deal_state = STATE_INIT_S
     _deal_timeouter = 0
     _deal_para = None
     # define by bwz end
@@ -544,7 +544,7 @@ class Transport(threading.Thread, ClosingContextManager):
         # And set attribute for reference later.
         self.gss_host = gss_host
 
-    def start_client(self, event=None, timeout=None):
+    def start_client_noblocking(self, event=None, timeout=None):
         """
         Negotiate a new SSH2 session as a client.  This is the first step after
         creating a new `.Transport`.  A separate thread is created for protocol
@@ -608,7 +608,67 @@ class Transport(threading.Thread, ClosingContextManager):
             ):
                 break
          '''
+         
+    def start_client(self, event=None, timeout=None):
+        """
+        Negotiate a new SSH2 session as a client.  This is the first step after
+        creating a new `.Transport`.  A separate thread is created for protocol
+        negotiation.
 
+        If an event is passed in, this method returns immediately.  When
+        negotiation is done (successful or not), the given ``Event`` will
+        be triggered.  On failure, `is_active` will return ``False``.
+
+        (Since 1.4) If ``event`` is ``None``, this method will not return until
+        negotiation is done.  On success, the method returns normally.
+        Otherwise an SSHException is raised.
+
+        After a successful negotiation, you will usually want to authenticate,
+        calling `auth_password <Transport.auth_password>` or
+        `auth_publickey <Transport.auth_publickey>`.
+
+        .. note:: `connect` is a simpler method for connecting as a client.
+
+        .. note::
+            After calling this method (or `start_server` or `connect`), you
+            should no longer directly read from or write to the original socket
+            object.
+
+        :param .threading.Event event:
+            an event to trigger when negotiation is complete (optional)
+
+        :param float timeout:
+            a timeout, in seconds, for SSH2 session negotiation (optional)
+
+        :raises:
+            `.SSHException` -- if negotiation fails (and no ``event`` was
+            passed in)
+        """
+        self.active = True
+        if event is not None:
+            # async, return immediately and let the app poll for completion
+            self.completion_event = event
+            self.start()
+            return
+
+        # synchronous, wait for a result
+        self.completion_event = event = threading.Event()
+        self.start()
+        max_time = time.time() + timeout if timeout is not None else None
+        #need to change an other way to find if timeout!
+        while True:
+            print("[start_client] :runing here")
+            event.wait(0.1)
+            if not self.active:
+                e = self.get_exception()
+                if e is not None:
+                    raise e
+                raise SSHException("Negotiation failed.")
+            if event.is_set() or (
+                timeout is not None and time.time() >= max_time
+            ):
+                break
+                
     def start_server(self, event=None, server=None):
         """
         Negotiate a new SSH2 session as a server.  This is the first step after
@@ -2140,6 +2200,8 @@ class Transport(threading.Thread, ClosingContextManager):
     def _deal_fsm_set(self, fsm):
         print("[_deal_fsm_set] : fsm %u to %u"  %(self._deal_state, fsm))
         self._deal_state = fsm
+    def _deal_fsm_get(self):
+        return self._deal_state
     def _deal_fsm(self):
         if (self._deal_state == STATE_BANNER_S):
             self._check_banner_noblocking()
@@ -2166,7 +2228,7 @@ class Transport(threading.Thread, ClosingContextManager):
         try:
             try:
                 #-m by bwz
-                if self._deal_state == 0:
+                if self._deal_fsm_get == 0:
                     self.packetizer.write_all(b(self.local_version + "\r\n"))
                     self._log(
                         DEBUG,
