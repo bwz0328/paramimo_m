@@ -149,6 +149,9 @@ class Transport(threading.Thread, ClosingContextManager):
     _deal_state = STATE_INIT_S
     _deal_timeouter = 0
     _deal_para = None
+    _fun_todo_list = []
+    _fun_doing = None
+    _fun_if_waiting = False
     # define by bwz end
 
     _PROTO_ID = "2.0"
@@ -647,6 +650,7 @@ class Transport(threading.Thread, ClosingContextManager):
             `.SSHException` -- if negotiation fails (and no ``event`` was
             passed in)
         """
+        print(sys._getframe().f_code.co_name)
         self.active = True
         if event is not None:
             # async, return immediately and let the app poll for completion
@@ -2259,30 +2263,29 @@ class Transport(threading.Thread, ClosingContextManager):
                     self._deal_fsm_set(STATE_S_WAITING_PACKET)
                 if self._deal_fsm_get() != STATE_S_WAITING_PACKET:
                     return
-                if self.active:
+                while self.active:
                     if self.packetizer.need_rekey() and not self.in_kex:
                         print("run  1!")
                         self._send_kex_init()
                     try:
-                        print(" ==> readmsg")
+                        print("[run_for_noblocking] ==> readmsg")
                         ptype, m = self.packetizer.read_message()
-                        print(" ==> get msg")
+                        print("[run_for_noblocking] ==> get msg")
                     except NeedRekeyException:
-                        #continue
-                        pass
+                        break
 
                     #deal by type
                     if ptype == MSG_IGNORE:
                         #continue
-                        pass
+                        break
                     elif ptype == MSG_DISCONNECT:
                         self._parse_disconnect(m)
                         if_close = True
-                        #break
+                        break
                     elif ptype == MSG_DEBUG:
                         self._parse_debug(m)
                         #continue
-                        pass
+                        break
                     if len(self._expected_packet) > 0:
                         if ptype not in self._expected_packet:
                             if_close = True
@@ -2295,17 +2298,17 @@ class Transport(threading.Thread, ClosingContextManager):
                         if (ptype >= 30) and (ptype <= 41):
                             self.kex_engine.parse_next(ptype, m)
                             #continue
-                            pass
-                    print("run  2!")
+                            break
+                    #print("run  2!")
                     if ptype in self._handler_table:
-                        print("run  3!")
+                        #print("run  3!")
                         error_msg = self._ensure_authed(ptype, m)
                         if error_msg:
                             self._send_message(error_msg)
                         else:
                             self._handler_table[ptype](self, m)
                     elif ptype in self._channel_handler_table:
-                        print("run  4!")
+                        #print("run  4!")
                         chanid = m.get_int()
                         chan = self._channels.get(chanid)
                         if chan is not None:
@@ -2324,7 +2327,8 @@ class Transport(threading.Thread, ClosingContextManager):
                                     chanid
                                 ),
                             )
-                            #break
+                            if_close = True
+                            break
                     elif (
                         self.auth_handler is not None
                         and ptype in self.auth_handler._handler_table
@@ -2334,7 +2338,7 @@ class Transport(threading.Thread, ClosingContextManager):
                         handler(self.auth_handler, m)
                         if len(self._expected_packet) > 0:
                             #continue
-                            pass
+                            break
                     else:
                         print("run  6!")
                         # Respond with "I don't implement this particular
@@ -2351,15 +2355,18 @@ class Transport(threading.Thread, ClosingContextManager):
                             msg.add_byte(cMSG_UNIMPLEMENTED)
                             msg.add_int(m.seqno)
                             self._send_message(msg)
-                    self.packetizer.complete_handshake()
+                    #============>>>>deal it
+                    #self.packetizer.complete_handshake()
                 print("run while end !")
             except SSHException as e:
                 self._log(ERROR, "Exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
+                if_close = True
             except EOFError as e:
                 self._log(DEBUG, "EOF in transport thread")
                 self.saved_exception = e
+                if_close = True
             except socket.error as e:
                 if type(e.args) is tuple:
                     if e.args:
@@ -2370,10 +2377,12 @@ class Transport(threading.Thread, ClosingContextManager):
                     emsg = e.args
                 self._log(ERROR, "Socket exception: " + emsg)
                 self.saved_exception = e
+                if_close = True
             except Exception as e:
                 self._log(ERROR, "Unknown exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
+                if_close = True
             if (if_close):
                 _active_threads.remove(self)
                 for chan in list(self._channels.values()):
@@ -2934,6 +2943,7 @@ class Transport(threading.Thread, ClosingContextManager):
         # send an event?
         if self.completion_event is not None:
             self.completion_event.set()
+            self._completion_callback()
         # it's now okay to send data again (if this was a re-key)
         if not self.packetizer.need_rekey():
             self.in_kex = False
@@ -2943,7 +2953,9 @@ class Transport(threading.Thread, ClosingContextManager):
         finally:
             self.clear_to_send_lock.release()
         return
-
+    def _completion_callback(self):
+        pass
+    
     def _parse_disconnect(self, m):
         code = m.get_int()
         desc = m.get_text()
