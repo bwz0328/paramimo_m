@@ -667,6 +667,7 @@ class Transport(threading.Thread, ClosingContextManager):
             if event.is_set() or (
                 timeout is not None and time.time() >= max_time
             ):
+                print("[start_client] :", event.is_set())
                 break
                 
     def start_server(self, event=None, server=None):
