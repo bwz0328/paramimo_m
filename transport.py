@@ -572,6 +572,7 @@ class Transport(threading.Thread, ClosingContextManager):
             todolist = self._fun_todo_list[0]
             del self._fun_todo_list[0]
             para = todolist["funPara"].pop("self")
+            print("[_completion_callback] : next", todolist["funcName"])
             eval("self." + todolist["funcName"])(**para)
 
     def start_client_noblocking_callback(self, para1, para2):
