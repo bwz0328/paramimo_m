@@ -611,7 +611,7 @@ class Transport(threading.Thread, ClosingContextManager):
             `.SSHException` -- if negotiation fails (and no ``event`` was
             passed in)
         """
-        if not self._insert_func(sys._getframe().f_code.co_name, locals()):
+        if not self._insert_func(sys._getframe().f_code.co_name, locals(), "start_client_noblocking_callback", {"para1":"p1", "para2":"p2"}):
             print("[start_client_noblocking]: in todo list")
             return
         self.active = True
