@@ -571,14 +571,13 @@ class Transport(threading.Thread, ClosingContextManager):
             except Exception as e:
                 self._log(ERROR, "run callback Error, " + str(e))
                 self.saved_exception = e
-        print("[_completion_callback] : 1")
         self._fun_doing = None
-        print("[_completion_callback] : 2")
         if (len(self._fun_todo_list) > 0):
-            print("[_completion_callback] : 3")
             try:
                 todolist = self._fun_todo_list[0]
+                print("[_completion_callback] 1 ")
                 del self._fun_todo_list[0]
+                print("[_completion_callback] 2 ")
                 para = todolist["funPara"].pop("self")
                 print("[_completion_callback] : next", todolist["funcName"])
                 eval("self." + todolist["funcName"])(**para)
