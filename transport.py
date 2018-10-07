@@ -555,14 +555,14 @@ class Transport(threading.Thread, ClosingContextManager):
     #self._insert_func(sys._getframe().f_code.co_name, locals())
     def _insert_func(self, funcName, funcPara, funcCallback = None, funcCbPara = {}):
         #funcPara.pop("self")
-        if (self._fun_doing == None):
+        if (self._fun_doing is None):
             self._fun_doing = {"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara}
             return True
         else:
             self._fun_todo_list.append({"funcName":funcName, "funcPara":funcPara})
             return False
     def _completion_callback(self):
-        if self._fun_doing == None:
+        if self._fun_doing is None:
             return
         if self._fun_doing["funcCallback"]:
             callbackPara = self._fun_doing["funcCbPara"]
@@ -571,8 +571,11 @@ class Transport(threading.Thread, ClosingContextManager):
             except Exception as e:
                 self._log(ERROR, "run callback Error, " + str(e))
                 self.saved_exception = e
+        print("[_completion_callback] : 1")
         self._fun_doing = None
+        print("[_completion_callback] : 2")
         if (len(self._fun_todo_list) > 0):
+            print("[_completion_callback] : 3")
             try:
                 todolist = self._fun_todo_list[0]
                 del self._fun_todo_list[0]
