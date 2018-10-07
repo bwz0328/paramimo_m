@@ -566,7 +566,7 @@ class Transport(threading.Thread, ClosingContextManager):
             callbackPara = self._fun_doing["funcCbPara"]
             eval("self." + self._fun_doing["funcCallback"])(**callbackPara)
         self._fun_doing = None
-        if (len(self._fun_todo_list) > 0)
+        if (len(self._fun_todo_list) > 0):
             todolist = self._fun_todo_list[0]
             del self._fun_todo_list[0]
             para = todolist["funPara"].pop("self")
