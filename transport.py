@@ -1665,6 +1665,7 @@ class Transport(threading.Thread, ClosingContextManager):
         if not self._insert_func(sys._getframe().f_code.co_name, locals(), "auth_password_noblocking_callback", para):
             print("[auth_password_noblocking]: in todo list")
             return
+        print("[auth_password_noblocking] running")
         if (not self.active) or (not self.initial_kex_done):
             # we should never try to send the password unless we're on a secure
             # link
