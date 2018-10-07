@@ -566,6 +566,8 @@ class Transport(threading.Thread, ClosingContextManager):
             return
         if self._fun_doing["funcCallback"]:
             callbackPara = self._fun_doing["funcCbPara"]
+            if 'self' in callbackPara:
+                callbackPara.pop("self")
             try:
                 eval("self." + self._fun_doing["funcCallback"])(**callbackPara)
             except Exception as e:
@@ -578,9 +580,10 @@ class Transport(threading.Thread, ClosingContextManager):
                 print("[_completion_callback] 1 ")
                 del self._fun_todo_list[0]
                 print("[_completion_callback] 2 ")
-                print(todolist)
                 para = todolist["funPara"]
-                para.pop("self")
+                print(para)
+                if 'self' in para:
+                    para.pop("self")
                 print("[_completion_callback] : next", todolist["funcName"])
                 eval("self." + todolist["funcName"])(**para)
             except Exception as e:
