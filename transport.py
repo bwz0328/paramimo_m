@@ -579,6 +579,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 todolist = self._fun_todo_list[0]
                 del self._fun_todo_list[0]
                 para = todolist["funcPara"]
+                print(todolist)
                 if 'self' in para:
                     para.pop("self")
                 print("[_completion_callback] : next", todolist["funcName"], para)
@@ -1661,8 +1662,8 @@ class Transport(threading.Thread, ClosingContextManager):
             event was passed in)
         :raises: `.SSHException` -- if there was a network error
         """
-        para = {"fallback":fallback}
-        if not self._insert_func(sys._getframe().f_code.co_name, locals(), "auth_password_noblocking_callback", para):
+        para_in_auth_password = {"fallback":fallback}
+        if not self._insert_func(sys._getframe().f_code.co_name, locals(), "auth_password_noblocking_callback", para_in_auth_password):
             print("[auth_password_noblocking]: in todo list")
             return
         print("[auth_password_noblocking] running")
@@ -1677,7 +1678,7 @@ class Transport(threading.Thread, ClosingContextManager):
         self.auth_handler = AuthHandler(self)
 
         #changing input
-        para["my_event"] = my_event
+        para_in_auth_password["my_event"] = my_event
         #send packet here
         self.auth_handler.auth_password(username, password, my_event)
         if event is not None:
