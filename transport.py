@@ -1662,8 +1662,9 @@ class Transport(threading.Thread, ClosingContextManager):
             event was passed in)
         :raises: `.SSHException` -- if there was a network error
         """
+        locinput = locals()
         para_in_auth_password = {"fallback":fallback}
-        if not self._insert_func(sys._getframe().f_code.co_name, locals(), "auth_password_noblocking_callback", para_in_auth_password):
+        if not self._insert_func(sys._getframe().f_code.co_name, locinput, "auth_password_noblocking_callback", para_in_auth_password):
             print("[auth_password_noblocking]: in todo list")
             return
         print("[auth_password_noblocking] running")
