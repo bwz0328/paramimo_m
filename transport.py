@@ -551,13 +551,23 @@ class Transport(threading.Thread, ClosingContextManager):
         # And set attribute for reference later.
         self.gss_host = gss_host
 
-    def insert_func(self, funcName, funcPara):
+    #para.pop("self")
+    #self._insert_func(sys._getframe().f_code.co_name, locals())
+    def _insert_func(self, funcName, funcPara):
+        #funcPara.pop("self")
         if (self._fun_doing == None):
             self._fun_doing = {"funcName":funcName, "funcPara":funcPara}
             return True
         else:
             self._fun_todo_list.append({"funcName":funcName, "funcPara":funcPara})
             return False
+    def _completion_callback(self):
+        self._fun_doing = None
+        todolist = self._fun_todo_list[0]
+        del self._fun_todo_list[0]
+        para = todolist["funPara"].pop("self")
+        eval("self." + todolist["funcName"])(**para)
+
     def start_client_noblocking(self, event=None, timeout=None):
         """
         Negotiate a new SSH2 session as a client.  This is the first step after
@@ -593,7 +603,9 @@ class Transport(threading.Thread, ClosingContextManager):
             `.SSHException` -- if negotiation fails (and no ``event`` was
             passed in)
         """
-        
+        if not self._insert_func(sys._getframe().f_code.co_name, locals()):
+            print("[start_client_noblocking]: in todo list")
+            return
         self.active = True
         if event is not None:
             # async, return immediately and let the app poll for completion
@@ -2962,8 +2974,6 @@ class Transport(threading.Thread, ClosingContextManager):
         finally:
             self.clear_to_send_lock.release()
         return
-    def _completion_callback(self):
-        pass
     
     def _parse_disconnect(self, m):
         code = m.get_int()
