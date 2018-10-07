@@ -2291,7 +2291,7 @@ class Transport(threading.Thread, ClosingContextManager):
                     try:
                         print("[run_for_noblocking] ==> readmsg")
                         ptype, m = self.packetizer.read_message()
-                        print("[run_for_noblocking] ==> get msg")
+                        print("[run_for_noblocking] ==> get msg, type[" ,ptype , "] Data=>:",m)
                     except NeedRekeyException:
                         break
 
@@ -2376,9 +2376,10 @@ class Transport(threading.Thread, ClosingContextManager):
                             msg.add_byte(cMSG_UNIMPLEMENTED)
                             msg.add_int(m.seqno)
                             self._send_message(msg)
+                    break
                     #============>>>>deal it
                     #self.packetizer.complete_handshake()
-                print("run while end !")
+                print("[run_for_noblocking]  End !")
             except SSHException as e:
                 self._log(ERROR, "Exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
