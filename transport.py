@@ -577,11 +577,8 @@ class Transport(threading.Thread, ClosingContextManager):
         if (len(self._fun_todo_list) > 0):
             try:
                 todolist = self._fun_todo_list[0]
-                print("[_completion_callback] 1 ")
                 del self._fun_todo_list[0]
-                print("[_completion_callback] 2 ")
-                para = todolist["funPara"]
-                print(para)
+                para = todolist["funcPara"]
                 if 'self' in para:
                     para.pop("self")
                 print("[_completion_callback] : next", todolist["funcName"])
