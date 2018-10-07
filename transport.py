@@ -553,21 +553,27 @@ class Transport(threading.Thread, ClosingContextManager):
 
     #para.pop("self")
     #self._insert_func(sys._getframe().f_code.co_name, locals())
-    def _insert_func(self, funcName, funcPara):
+    def _insert_func(self, funcName, funcPara, funcCallback = None, funcCbPara = {}):
         #funcPara.pop("self")
         if (self._fun_doing == None):
-            self._fun_doing = {"funcName":funcName, "funcPara":funcPara}
+            self._fun_doing = {"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara}
             return True
         else:
             self._fun_todo_list.append({"funcName":funcName, "funcPara":funcPara})
             return False
     def _completion_callback(self):
+        if self._fun_doing["funcCallback"]:
+            callbackPara = self._fun_doing["funcCbPara"]
+            eval("self." + self._fun_doing["funcCallback"])(**callbackPara)
         self._fun_doing = None
-        todolist = self._fun_todo_list[0]
-        del self._fun_todo_list[0]
-        para = todolist["funPara"].pop("self")
-        eval("self." + todolist["funcName"])(**para)
+        if (len(self._fun_todo_list) > 0)
+            todolist = self._fun_todo_list[0]
+            del self._fun_todo_list[0]
+            para = todolist["funPara"].pop("self")
+            eval("self." + todolist["funcName"])(**para)
 
+    def start_client_noblocking_callback(self, para1, para2):
+        print("start_client success", para1, para2)
     def start_client_noblocking(self, event=None, timeout=None):
         """
         Negotiate a new SSH2 session as a client.  This is the first step after
