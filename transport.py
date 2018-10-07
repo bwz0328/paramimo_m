@@ -562,6 +562,8 @@ class Transport(threading.Thread, ClosingContextManager):
             self._fun_todo_list.append({"funcName":funcName, "funcPara":funcPara})
             return False
     def _completion_callback(self):
+        if self._fun_doing == None:
+            return
         if self._fun_doing["funcCallback"]:
             callbackPara = self._fun_doing["funcCbPara"]
             eval("self." + self._fun_doing["funcCallback"])(**callbackPara)
