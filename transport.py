@@ -559,7 +559,7 @@ class Transport(threading.Thread, ClosingContextManager):
             self._fun_doing = {"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara}
             return True
         else:
-            self._fun_todo_list.append({"funcName":funcName, "funcPara":funcPara})
+            self._fun_todo_list.append({"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara})
             return False
     def _completion_callback(self):
         if self._fun_doing is None:
@@ -578,6 +578,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 print("[_completion_callback] 1 ")
                 del self._fun_todo_list[0]
                 print("[_completion_callback] 2 ")
+                print(todolist)
                 para = todolist["funPara"].pop("self")
                 print("[_completion_callback] : next", todolist["funcName"])
                 eval("self." + todolist["funcName"])(**para)
