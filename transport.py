@@ -581,7 +581,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 para = todolist["funcPara"]
                 if 'self' in para:
                     para.pop("self")
-                print("[_completion_callback] : next", todolist["funcName"])
+                print("[_completion_callback] : next", todolist["funcName"], para)
                 eval("self." + todolist["funcName"])(**para)
             except Exception as e:
                 self._log(ERROR, "run next function Error, " + str(e))
