@@ -2522,15 +2522,18 @@ class Transport(threading.Thread, ClosingContextManager):
                     #self.packetizer.complete_handshake()
                 print("[run_for_noblocking]  End !")
             except SSHException as e:
+                print("[run_for_noblocking]  E 1 !")
                 self._log(ERROR, "Exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
                 if_close = True
             except EOFError as e:
+                print("[run_for_noblocking]  E 2 !")
                 self._log(DEBUG, "EOF in transport thread")
                 self.saved_exception = e
                 if_close = True
             except socket.error as e:
+                print("[run_for_noblocking]  E 3 !")
                 if type(e.args) is tuple:
                     if e.args:
                         emsg = "{} ({:d})".format(e.args[1], e.args[0])
@@ -2542,6 +2545,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 self.saved_exception = e
                 if_close = True
             except Exception as e:
+                print("[run_for_noblocking]  E 4 !")
                 self._log(ERROR, "Unknown exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
