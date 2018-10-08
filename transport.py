@@ -970,6 +970,7 @@ class Transport(threading.Thread, ClosingContextManager):
             print("[open_session_noblocking]: in todo list")
             return
         print("[open_session_noblocking] running")
+        #can open many channel , now support one only
         return self.open_channel(
             "session",
             window_size=window_size,
@@ -1098,6 +1099,7 @@ class Transport(threading.Thread, ClosingContextManager):
         start_ts = time.time()
         while True:
             event.wait(0.1)
+            print("open channel Ok")
             if not self.active:
                 e = self.get_exception()
                 if e is None:
