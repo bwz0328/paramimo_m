@@ -2495,7 +2495,11 @@ class Transport(threading.Thread, ClosingContextManager):
                         handler(self.auth_handler, m)
                         #is ugly ,change it   MSG_USERAUTH_FAILURE 51, MSG_USERAUTH_SUCCESS  52
                         if (ptype == 51 or ptype == 52):
-                            self._completion_callback()  
+                            try:
+                                self._completion_callback()  
+                            except Exception as e:
+                                print(e)
+                                if_close = True
                         if len(self._expected_packet) > 0:
                             #continue
                             break
