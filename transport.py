@@ -2279,9 +2279,6 @@ class Transport(threading.Thread, ClosingContextManager):
                         print("run  5!")
                         handler = self.auth_handler._handler_table[ptype]
                         handler(self.auth_handler, m)
-                        #is ugly ,change it   MSG_USERAUTH_FAILURE 51, MSG_USERAUTH_SUCCESS  52
-                        if (ptype == 51 or ptype == 52):
-                            self._completion_callback()
                         if len(self._expected_packet) > 0:
                             continue
                     else:
@@ -2485,6 +2482,9 @@ class Transport(threading.Thread, ClosingContextManager):
                         print("run  5!")
                         handler = self.auth_handler._handler_table[ptype]
                         handler(self.auth_handler, m)
+                        #is ugly ,change it   MSG_USERAUTH_FAILURE 51, MSG_USERAUTH_SUCCESS  52
+                        if (ptype == 51 or ptype == 52):
+                            self._completion_callback()
                         if len(self._expected_packet) > 0:
                             #continue
                             break
