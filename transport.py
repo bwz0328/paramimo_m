@@ -106,6 +106,7 @@ from paramiko.ssh_exception import (
     BadAuthenticationType,
     ChannelException,
     ProxyCommandFailure,
+    AuthenticationException,
 )
 from paramiko.util import retry_on_signal, ClosingContextManager, clamp_value
 
