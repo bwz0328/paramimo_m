@@ -232,9 +232,11 @@ class AuthHandler(object):
         while True:
             event.wait(0.1)
             if not self.transport.is_active():
-                print("[wait_for_response]: 2")
+                print("[wait_for_response]: 3")
                 e = self.transport.get_exception()
+                print("[wait_for_response]: 4")
                 if (e is None) or issubclass(e.__class__, EOFError):
+                    print("[wait_for_response]: 5")
                     e = AuthenticationException("Authentication failed.")
                 raise e
             if event.is_set():
@@ -243,7 +245,7 @@ class AuthHandler(object):
                 raise AuthenticationException("Authentication timeout.")
 
         if not self.is_authenticated():
-            print("[wait_for_response]: 2")
+            print("[wait_for_response]: 6")
             e = self.transport.get_exception()
             if e is None:
                 e = AuthenticationException("Authentication failed.")
