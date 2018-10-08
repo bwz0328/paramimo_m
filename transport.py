@@ -1569,9 +1569,10 @@ class Transport(threading.Thread, ClosingContextManager):
             # if password auth isn't allowed, but keyboard-interactive *is*,
             # try to fudge it
             if not fallback or ("keyboard-interactive" not in e.allowed_types):
+                print("[auth_password]: raise here?")
                 raise
             try:
-
+                print("[auth_password]: come to here?")
                 def handler(title, instructions, fields):
                     if len(fields) > 1:
                         raise SSHException("Fallback authentication failed.")
