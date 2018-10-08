@@ -3243,7 +3243,7 @@ class Transport(threading.Thread, ClosingContextManager):
             )
             self._log(DEBUG, "Secsh channel {:d} opened.".format(chanid))
             if chanid in self.channel_events:
-                print("[_parse_channel_open_success] event %s" chanid)
+                print("[_parse_channel_open_success] event %s",chanid)
                 self.channel_events[chanid].set()
                 del self.channel_events[chanid]
         finally:
@@ -3266,7 +3266,7 @@ class Transport(threading.Thread, ClosingContextManager):
         try:
             self.saved_exception = ChannelException(reason, reason_text)
             if chanid in self.channel_events:
-                print("[_parse_channel_open_failure] event %s" chanid)
+                print("[_parse_channel_open_failure] event %s",chanid)
                 self._channels.delete(chanid)
                 if chanid in self.channel_events:
                     self.channel_events[chanid].set()
