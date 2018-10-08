@@ -247,7 +247,7 @@ class AuthHandler(object):
         if not self.is_authenticated():
             print("[wait_for_response]: 6")
             e = self.transport.get_exception()
-            print("[wait_for_response]: 7")
+            print("[wait_for_response]: 7", e)
             if e is None:
                 e = AuthenticationException("Authentication failed.")
             # this is horrible.  Python Exception isn't yet descended from
