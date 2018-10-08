@@ -936,6 +936,48 @@ class Transport(threading.Thread, ClosingContextManager):
             timeout=timeout,
         )
 
+
+    def open_session_noblocking(
+        self, window_size=None, max_packet_size=None, timeout=None
+    ):
+        """
+        Request a new channel to the server, of type ``"session"``.  This is
+        just an alias for calling `open_channel` with an argument of
+        ``"session"``.
+
+        .. note:: Modifying the the window and packet sizes might have adverse
+            effects on the session created. The default values are the same
+            as in the OpenSSH code base and have been battle tested.
+
+        :param int window_size:
+            optional window size for this session.
+        :param int max_packet_size:
+            optional max packet size for this session.
+
+        :return: a new `.Channel`
+
+        :raises:
+            `.SSHException` -- if the request is rejected or the session ends
+            prematurely
+
+        .. versionchanged:: 1.13.4/1.14.3/1.15.3
+            Added the ``timeout`` argument.
+        .. versionchanged:: 1.15
+            Added the ``window_size`` and ``max_packet_size`` arguments.
+        """
+        locinput = locals()
+        if not self._insert_func(sys._getframe().f_code.co_name, locinput):
+            print("[open_session_noblocking]: in todo list")
+            return
+        print("[open_session_noblocking] running")
+        return self.open_channel(
+            "session",
+            window_size=window_size,
+            max_packet_size=max_packet_size,
+            timeout=timeout,
+        )
+
+
     def open_x11_channel(self, src_addr=None):
         """
         Request a new channel to the client, of type ``"x11"``.  This
