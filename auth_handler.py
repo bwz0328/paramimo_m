@@ -247,12 +247,14 @@ class AuthHandler(object):
         if not self.is_authenticated():
             print("[wait_for_response]: 6")
             e = self.transport.get_exception()
+            print("[wait_for_response]: 7")
             if e is None:
                 e = AuthenticationException("Authentication failed.")
             # this is horrible.  Python Exception isn't yet descended from
             # object, so type(e) won't work. :(
             if issubclass(e.__class__, PartialAuthentication):
                 return e.allowed_types
+            print("[wait_for_response]: 8")
             raise e
         return []
 
