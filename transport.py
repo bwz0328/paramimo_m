@@ -1586,6 +1586,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 # attempt failed; just raise the original exception
                 raise e
     def auth_password_noblocking_callback(self, fallback, my_event):
+        print("[auth_password_noblocking_callback] get return")
         try:
             return self.auth_handler.wait_for_response(my_event)
         except BadAuthenticationType as e:
