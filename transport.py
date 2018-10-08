@@ -1600,6 +1600,7 @@ class Transport(threading.Thread, ClosingContextManager):
         except BadAuthenticationType as e:
             # if password auth isn't allowed, but keyboard-interactive *is*,
             # try to fudge it
+            print("[auth_password_noblocking_callback] 11" )
             raise
             '''
             #not support auth_interactive
