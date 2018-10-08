@@ -572,9 +572,8 @@ class Transport(threading.Thread, ClosingContextManager):
                 callbackPara.pop("self")
             try:
                 eval("self." + self._fun_doing["funcCallback"])(**callbackPara)
-            except Exception as e:
-                self.saved_exception = e
-                raise e
+            except:
+                raise
         self._fun_doing = None
         #do next stuf
         if (len(self._fun_todo_list) > 0):
@@ -587,8 +586,8 @@ class Transport(threading.Thread, ClosingContextManager):
                     para.pop("self")
                 print("[_completion_callback] : next", todolist["funcName"], para)
                 eval("self." + todolist["funcName"])(**para)
-            except Exception as e:
-                self.saved_exception = e
+            except:
+                raise
 
     def start_client_noblocking_callback(self, para1, para2):
         print("start_client success", para1, para2)
