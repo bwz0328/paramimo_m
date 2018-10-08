@@ -1097,9 +1097,10 @@ class Transport(threading.Thread, ClosingContextManager):
             self.lock.release()
         self._send_user_message(m)
         start_ts = time.time()
+        print("[open_channel]  begin to wait")
         while True:
             event.wait(0.1)
-            print("open channel Ok")
+            print("[open_channel] open channel Ok?")
             if not self.active:
                 e = self.get_exception()
                 if e is None:
@@ -3242,6 +3243,7 @@ class Transport(threading.Thread, ClosingContextManager):
             )
             self._log(DEBUG, "Secsh channel {:d} opened.".format(chanid))
             if chanid in self.channel_events:
+                print("[_parse_channel_open_success] event %s" chanid)
                 self.channel_events[chanid].set()
                 del self.channel_events[chanid]
         finally:
@@ -3264,6 +3266,7 @@ class Transport(threading.Thread, ClosingContextManager):
         try:
             self.saved_exception = ChannelException(reason, reason_text)
             if chanid in self.channel_events:
+                print("[_parse_channel_open_failure] event %s" chanid)
                 self._channels.delete(chanid)
                 if chanid in self.channel_events:
                     self.channel_events[chanid].set()
