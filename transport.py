@@ -2543,6 +2543,12 @@ class Transport(threading.Thread, ClosingContextManager):
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
                 if_close = True
+            #add by bwz
+            except AuthenticationException as e:
+                print("Other Except ,")
+                self.saved_exception = e
+                if_close = True
+                
             if (if_close):
                 _active_threads.remove(self)
                 for chan in list(self._channels.values()):
