@@ -1618,7 +1618,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 # attempt failed; just raise the original exception
                 raise e
             '''
-         except AuthenticationException as e:
+        except AuthenticationException as e:
              print("[auth_password_noblocking_callback] raise e")
              raise e
 
