@@ -1588,6 +1588,10 @@ class Transport(threading.Thread, ClosingContextManager):
             except SSHException:
                 # attempt failed; just raise the original exception
                 raise e
+        except AuthenticationException as e:
+             print("[auth_password] raise e")
+             raise e
+             
     def auth_password_noblocking_callback(self, fallback, my_event):
         print("[auth_password_noblocking_callback] get return")
         try:
