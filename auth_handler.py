@@ -225,11 +225,14 @@ class AuthHandler(object):
 
     def wait_for_response(self, event):
         max_ts = None
+        print("[wait_for_response]: 1")
         if self.transport.auth_timeout is not None:
+            print("[wait_for_response]: 2")
             max_ts = time.time() + self.transport.auth_timeout
         while True:
             event.wait(0.1)
             if not self.transport.is_active():
+                print("[wait_for_response]: 2")
                 e = self.transport.get_exception()
                 if (e is None) or issubclass(e.__class__, EOFError):
                     e = AuthenticationException("Authentication failed.")
@@ -240,6 +243,7 @@ class AuthHandler(object):
                 raise AuthenticationException("Authentication timeout.")
 
         if not self.is_authenticated():
+            print("[wait_for_response]: 2")
             e = self.transport.get_exception()
             if e is None:
                 e = AuthenticationException("Authentication failed.")
