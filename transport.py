@@ -1228,14 +1228,11 @@ class Transport(threading.Thread, ClosingContextManager):
         if not self.active:
             raise SSHException("SSH session not active")
         timeout = 3600 if timeout is None else timeout
-        print("[open_channel_noblocking]: v1")
         self.lock.acquire()
         try:
-            print("[open_channel_noblocking]: q1")
             window_size = self._sanitize_window_size(window_size)
             max_packet_size = self._sanitize_packet_size(max_packet_size)
             chanid = self._next_channel()
-            print("[open_channel_noblocking]: q2")
             m = Message()
             m.add_byte(cMSG_CHANNEL_OPEN)
             m.add_string(kind)
@@ -1250,22 +1247,17 @@ class Transport(threading.Thread, ClosingContextManager):
             elif kind == "x11":
                 m.add_string(src_addr[0])
                 m.add_int(src_addr[1])
-            print("[open_channel_noblocking]: q3")
             chan = Channel(chanid)
             self._channels.put(chanid, chan)
             self.channel_events[chanid] = event = threading.Event()
-            callbacktable["event": event]
+            callbacktable["event"] = event
             self.channels_seen[chanid] = True
-            print("[open_channel_noblocking]: 1")
             self._my_chanid = chanid
-            print("[open_channel_noblocking]: 2")
             chan._set_transport(self)
             chan._set_window(window_size, max_packet_size)
         finally:
             self.lock.release()
-        print("[open_channel_noblocking]: 3")
         self._send_user_message(m)
-        print("[open_channel_noblocking]: 4")
         start_ts = time.time()
         '''
         #move to callback
