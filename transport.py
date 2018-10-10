@@ -1325,7 +1325,8 @@ class Transport(threading.Thread, ClosingContextManager):
             return {"data":out, "len":len(out)}
         else:
             return {"data":"" , "len":0}
-            
+    def send(self, data):
+        return self._my_chan.send(data)
 
     def request_port_forward(self, address, port, handler=None):
         """
