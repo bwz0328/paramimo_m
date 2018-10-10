@@ -1319,9 +1319,10 @@ class Transport(threading.Thread, ClosingContextManager):
 
     def read_noblocking(self, nbytes = 1024)
         if not self._ifCanRead:
-            return 0
+            return {"data":"" , "len":0}
         if self._my_chan.recv_ready():
-            return self._my_chan.recv(nbytes)
+            out = self._my_chan.recv(nbytes)
+            return {"data":out, "len":len(out)}
             
             
 
