@@ -394,7 +394,7 @@ class Packetizer(object):
                     DEBUG,
                     "Write packet <{}>, length {}".format(cmd_name, orig_len),
                 )
-                print("Write packet <{}>, length {}".format(cmd_name, orig_len)
+                print("Write packet <{}>, length {}".format(cmd_name, orig_len))
                 self._log(DEBUG, util.format_binary(packet, "OUT: "))
             if self.__block_engine_out is not None:
                 out = self.__block_engine_out.update(packet)
