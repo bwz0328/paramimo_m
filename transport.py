@@ -154,6 +154,8 @@ class Transport(threading.Thread, ClosingContextManager):
     _fun_doing = None
     _fun_if_waiting = False
     _fun_call_from_callback = False
+    _my_chanid = 0
+    _my_chan = None
     # define by bwz end
 
     _PROTO_ID = "2.0"
@@ -562,11 +564,32 @@ class Transport(threading.Thread, ClosingContextManager):
         else:
             self._fun_todo_list.append({"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara})
             return False
+    def _insert_func_when_doing(self, funcName, funcPara, funcCallback = None, funcCbPara = {}):
+        #change to support  insert morethen one function
+        if (self._fun_doing is None):
+            self._fun_doing["next"] = {"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara}
+            return True
+        else:
+            print("[_insert_func_when_doing]:cannot come here")
+    
     def _completion_callback(self):
         print("[_completion_callback]: called" )
         if self._fun_doing is None:
             return
-        if self._fun_doing["funcCallback"]:
+        #change to support  insert morethen one function
+        if 'next' in self._fun_doing:
+            if self._fun_doing["next"]["funcCallback"] is not None:
+                callbackPara = self._fun_doing["next"]["funcCbPara"]
+                if 'self' in callbackPara:
+                    callbackPara.pop("self")
+                try:
+                    eval("self." + self._fun_doing["next"]["funcCallback"])(**callbackPara)
+                except:
+                    raise
+                if self._fun_doing["funcCallback"] is not None:
+                    #wait for next callback
+                    return
+        if self._fun_doing["funcCallback"] is not None:
             callbackPara = self._fun_doing["funcCbPara"]
             if 'self' in callbackPara:
                 callbackPara.pop("self")
@@ -574,6 +597,11 @@ class Transport(threading.Thread, ClosingContextManager):
                 eval("self." + self._fun_doing["funcCallback"])(**callbackPara)
             except:
                 raise
+            self._fun_doing["funcCallback"] = None
+            #if in callback call func ,should wait
+            if 'next' in self._fun_doing:
+                 if self._fun_doing["next"]["funcCallback"] is not None:
+                     return
         self._fun_doing = None
         #do next stuf
         if (len(self._fun_todo_list) > 0):
@@ -971,11 +999,12 @@ class Transport(threading.Thread, ClosingContextManager):
             return
         print("[open_session_noblocking] running")
         #can open many channel , now support one only
-        return self.open_channel(
+        return self.open_channel_noblocking(
             "session",
             window_size=window_size,
             max_packet_size=max_packet_size,
             timeout=timeout,
+            callbydoing = True
         )
 
 
@@ -1117,6 +1146,139 @@ class Transport(threading.Thread, ClosingContextManager):
         if e is None:
             e = SSHException("Unable to open channel.")
         raise e
+
+    def open_channel_noblocking_callback(self, event):
+        while True:
+            event.wait(0.1)
+            print("[open_channel] open channel Ok?")
+            if not self.active:
+                e = self.get_exception()
+                if e is None:
+                    e = SSHException("Unable to open channel.")
+                raise e
+            if event.is_set():
+                break
+            elif start_ts + timeout < time.time():
+                raise SSHException("Timeout opening channel.")
+        chan = self._channels.get(self._my_chanid)
+        self._my_chan = chan
+        if chan is not None:
+            return chan
+        e = self.get_exception()
+        if e is None:
+            e = SSHException("Unable to open channel.")
+        raise e
+        
+    def open_channel_noblocking(
+        self,
+        kind,
+        dest_addr=None,
+        src_addr=None,
+        window_size=None,
+        max_packet_size=None,
+        timeout=None,
+        callbydoing = False,
+    ):
+        """
+        Request a new channel to the server. `Channels <.Channel>` are
+        socket-like objects used for the actual transfer of data across the
+        session. You may only request a channel after negotiating encryption
+        (using `connect` or `start_client`) and authenticating.
+
+        .. note:: Modifying the the window and packet sizes might have adverse
+            effects on the channel created. The default values are the same
+            as in the OpenSSH code base and have been battle tested.
+
+        :param str kind:
+            the kind of channel requested (usually ``"session"``,
+            ``"forwarded-tcpip"``, ``"direct-tcpip"``, or ``"x11"``)
+        :param tuple dest_addr:
+            the destination address (address + port tuple) of this port
+            forwarding, if ``kind`` is ``"forwarded-tcpip"`` or
+            ``"direct-tcpip"`` (ignored for other channel types)
+        :param src_addr: the source address of this port forwarding, if
+            ``kind`` is ``"forwarded-tcpip"``, ``"direct-tcpip"``, or ``"x11"``
+        :param int window_size:
+            optional window size for this session.
+        :param int max_packet_size:
+            optional max packet size for this session.
+        :param float timeout:
+            optional timeout opening a channel, default 3600s (1h)
+
+        :return: a new `.Channel` on success
+
+        :raises:
+            `.SSHException` -- if the request is rejected, the session ends
+            prematurely or there is a timeout openning a channel
+
+        .. versionchanged:: 1.15
+            Added the ``window_size`` and ``max_packet_size`` arguments.
+        """
+        locinput = locals()
+        callbacktable = {}
+        if not callbydoing:
+            if not self._insert_func(sys._getframe().f_code.co_name, locinput):
+                print("[open_channel_noblocking]: in todo list")
+                return
+        else:
+            self._insert_func_when_doing(sys._getframe().f_code.co_name, locinput, "open_channel_noblocking_callback", callbacktable)
+            
+        if not self.active:
+            raise SSHException("SSH session not active")
+        timeout = 3600 if timeout is None else timeout
+        self.lock.acquire()
+        try:
+            window_size = self._sanitize_window_size(window_size)
+            max_packet_size = self._sanitize_packet_size(max_packet_size)
+            chanid = self._next_channel()
+            m = Message()
+            m.add_byte(cMSG_CHANNEL_OPEN)
+            m.add_string(kind)
+            m.add_int(chanid)
+            m.add_int(window_size)
+            m.add_int(max_packet_size)
+            if (kind == "forwarded-tcpip") or (kind == "direct-tcpip"):
+                m.add_string(dest_addr[0])
+                m.add_int(dest_addr[1])
+                m.add_string(src_addr[0])
+                m.add_int(src_addr[1])
+            elif kind == "x11":
+                m.add_string(src_addr[0])
+                m.add_int(src_addr[1])
+            chan = Channel(chanid)
+            self._channels.put(chanid, chan)
+            self.channel_events[chanid] = event = threading.Event()
+            callbacktable["event": event]
+            self.channels_seen[chanid] = True
+            self._my_chanid = chanid
+            chan._set_transport(self)
+            chan._set_window(window_size, max_packet_size)
+        finally:
+            self.lock.release()
+        self._send_user_message(m)
+        start_ts = time.time()
+        '''
+        #move to callback
+        while True:
+            event.wait(0.1)
+            print("[open_channel] open channel Ok?")
+            if not self.active:
+                e = self.get_exception()
+                if e is None:
+                    e = SSHException("Unable to open channel.")
+                raise e
+            if event.is_set():
+                break
+            elif start_ts + timeout < time.time():
+                raise SSHException("Timeout opening channel.")
+        chan = self._channels.get(chanid)
+        if chan is not None:
+            return chan
+        e = self.get_exception()
+        if e is None:
+            e = SSHException("Unable to open channel.")
+        raise e
+        '''
 
     def request_port_forward(self, address, port, handler=None):
         """
