@@ -566,7 +566,7 @@ class Transport(threading.Thread, ClosingContextManager):
             return False
     def _insert_func_when_doing(self, funcName, funcPara, funcCallback = None, funcCbPara = {}):
         #change to support  insert morethen one function
-        if (self._fun_doing is None):
+        if (self._fun_doing is not None):
             self._fun_doing["next"] = {"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara}
             return True
         else:
