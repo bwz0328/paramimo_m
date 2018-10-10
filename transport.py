@@ -585,6 +585,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 if 'self' in callbackPara:
                     callbackPara.pop("self")
                 try:
+                    print("[_completion_callback] : call next callback", self._fun_doing["next"]["funcCallback"], callbackPara)
                     eval("self." + self._fun_doing["next"]["funcCallback"])(**callbackPara)
                 except:
                     raise
@@ -596,6 +597,7 @@ class Transport(threading.Thread, ClosingContextManager):
             if 'self' in callbackPara:
                 callbackPara.pop("self")
             try:
+                print("[_completion_callback] : call callback", self._fun_doing["funcCallback"], callbackPara)
                 eval("self." + self._fun_doing["funcCallback"])(**callbackPara)
             except:
                 raise
@@ -611,7 +613,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 todolist = self._fun_todo_list[0]
                 del self._fun_todo_list[0]
                 para = todolist["funcPara"]
-                print(todolist)
+                #print(todolist)
                 if 'self' in para:
                     para.pop("self")
                 print("[_completion_callback] : call next function", todolist["funcName"], para)
@@ -1150,6 +1152,8 @@ class Transport(threading.Thread, ClosingContextManager):
         raise e
 
     def open_channel_noblocking_callback(self, event):
+        timeout = 3600 if timeout is None else timeout
+        start_ts = time.time()
         while True:
             event.wait(0.1)
             print("[open_channel] open channel Ok?")
