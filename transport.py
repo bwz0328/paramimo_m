@@ -1323,7 +1323,8 @@ class Transport(threading.Thread, ClosingContextManager):
         if self._my_chan.recv_ready():
             out = self._my_chan.recv(nbytes)
             return {"data":out, "len":len(out)}
-            
+        else:
+            return {"data":"" , "len":0}
             
 
     def request_port_forward(self, address, port, handler=None):
