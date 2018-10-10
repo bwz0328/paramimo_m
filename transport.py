@@ -569,10 +569,11 @@ class Transport(threading.Thread, ClosingContextManager):
         print("[_insert_func_when_doing]: called")
         if self._fun_doing is not None:
             self._fun_doing["next"] = {"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara}
+            print("[_insert_func_when_doing]: called End1")
             return True
         else:
             print("[_insert_func_when_doing]:cannot come here")
-        print("[_insert_func_when_doing]: called End")
+        print("[_insert_func_when_doing]: called End2")
     def _completion_callback(self):
         print("[_completion_callback]: called" )
         if self._fun_doing is None:
@@ -1228,34 +1229,34 @@ class Transport(threading.Thread, ClosingContextManager):
             raise SSHException("SSH session not active")
         timeout = 3600 if timeout is None else timeout
         self.lock.acquire()
-        try:
-            window_size = self._sanitize_window_size(window_size)
-            max_packet_size = self._sanitize_packet_size(max_packet_size)
-            chanid = self._next_channel()
-            m = Message()
-            m.add_byte(cMSG_CHANNEL_OPEN)
-            m.add_string(kind)
-            m.add_int(chanid)
-            m.add_int(window_size)
-            m.add_int(max_packet_size)
-            if (kind == "forwarded-tcpip") or (kind == "direct-tcpip"):
-                m.add_string(dest_addr[0])
-                m.add_int(dest_addr[1])
-                m.add_string(src_addr[0])
-                m.add_int(src_addr[1])
-            elif kind == "x11":
-                m.add_string(src_addr[0])
-                m.add_int(src_addr[1])
-            chan = Channel(chanid)
-            self._channels.put(chanid, chan)
-            self.channel_events[chanid] = event = threading.Event()
-            callbacktable["event": event]
-            self.channels_seen[chanid] = True
-            self._my_chanid = chanid
-            chan._set_transport(self)
-            chan._set_window(window_size, max_packet_size)
-        finally:
-            self.lock.release()
+        #try:
+        window_size = self._sanitize_window_size(window_size)
+        max_packet_size = self._sanitize_packet_size(max_packet_size)
+        chanid = self._next_channel()
+        m = Message()
+        m.add_byte(cMSG_CHANNEL_OPEN)
+        m.add_string(kind)
+        m.add_int(chanid)
+        m.add_int(window_size)
+        m.add_int(max_packet_size)
+        if (kind == "forwarded-tcpip") or (kind == "direct-tcpip"):
+            m.add_string(dest_addr[0])
+            m.add_int(dest_addr[1])
+            m.add_string(src_addr[0])
+            m.add_int(src_addr[1])
+        elif kind == "x11":
+            m.add_string(src_addr[0])
+            m.add_int(src_addr[1])
+        chan = Channel(chanid)
+        self._channels.put(chanid, chan)
+        self.channel_events[chanid] = event = threading.Event()
+        callbacktable["event": event]
+        self.channels_seen[chanid] = True
+        self._my_chanid = chanid
+        chan._set_transport(self)
+        chan._set_window(window_size, max_packet_size)
+        #finally:
+        #    self.lock.release()
         self._send_user_message(m)
         start_ts = time.time()
         '''
