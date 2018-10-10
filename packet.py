@@ -389,12 +389,12 @@ class Packetizer(object):
             if self.__compress_engine_out is not None:
                 data = self.__compress_engine_out(data)
             packet = self._build_packet(data)
+            print("[send_message] Write packet <{}>, length {}".format(cmd_name, orig_len))
             if self.__dump_packets:
                 self._log(
                     DEBUG,
                     "Write packet <{}>, length {}".format(cmd_name, orig_len),
                 )
-                print("Write packet <{}>, length {}".format(cmd_name, orig_len))
                 self._log(DEBUG, util.format_binary(packet, "OUT: "))
             if self.__block_engine_out is not None:
                 out = self.__block_engine_out.update(packet)
