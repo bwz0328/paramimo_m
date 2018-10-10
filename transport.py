@@ -3745,6 +3745,7 @@ class ChannelMap(object):
             self._lock.release()
 
     def delete(self, chanid):
+        print("Channel Map del :%u" %chanid)
         self._lock.acquire()
         try:
             try:
