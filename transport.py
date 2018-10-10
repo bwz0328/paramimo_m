@@ -2694,6 +2694,13 @@ class Transport(threading.Thread, ClosingContextManager):
                         chan = self._channels.get(chanid)
                         if chan is not None:
                             self._channel_handler_table[ptype](chan, m)
+                            #is ugly ,change it   MSG_CHANNEL_SUCCESS
+                            if (ptype == MSG_CHANNEL_SUCCESS):
+                            try:
+                                self._completion_callback()  
+                            except Exception as e:
+                                print(e)
+                                if_close = True
                         elif chanid in self.channels_seen:
                             self._log(
                                 DEBUG,
