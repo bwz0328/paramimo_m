@@ -1317,7 +1317,7 @@ class Transport(threading.Thread, ClosingContextManager):
         self._my_chan.invoke_shell_noblocking_callback()
 
 
-    def read_noblocking(self, nbytes = 1024)
+    def read_noblocking(self, nbytes = 1024):
         if not self._ifCanRead:
             return {"data":"" , "len":0}
         if self._my_chan.recv_ready():
