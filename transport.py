@@ -1228,11 +1228,14 @@ class Transport(threading.Thread, ClosingContextManager):
         if not self.active:
             raise SSHException("SSH session not active")
         timeout = 3600 if timeout is None else timeout
+        print("[open_channel_noblocking]: v1")
         self.lock.acquire()
         try:
+            print("[open_channel_noblocking]: q1")
             window_size = self._sanitize_window_size(window_size)
             max_packet_size = self._sanitize_packet_size(max_packet_size)
             chanid = self._next_channel()
+            print("[open_channel_noblocking]: q2")
             m = Message()
             m.add_byte(cMSG_CHANNEL_OPEN)
             m.add_string(kind)
@@ -1247,6 +1250,7 @@ class Transport(threading.Thread, ClosingContextManager):
             elif kind == "x11":
                 m.add_string(src_addr[0])
                 m.add_int(src_addr[1])
+            print("[open_channel_noblocking]: q3")
             chan = Channel(chanid)
             self._channels.put(chanid, chan)
             self.channel_events[chanid] = event = threading.Event()
