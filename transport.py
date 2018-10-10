@@ -1254,7 +1254,8 @@ class Transport(threading.Thread, ClosingContextManager):
             chan = Channel(chanid)
             self._channels.put(chanid, chan)
             print("[open_channel_noblocking]: chanid:%u" %chanid)
-            print(self._channels)
+            chant = self._channels.get(chanid)
+            print(self._channels, chant)
             self.channel_events[chanid] = event = threading.Event()
             callbacktable["event"] = event
             self.channels_seen[chanid] = True
