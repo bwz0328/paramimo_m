@@ -156,6 +156,7 @@ class Transport(threading.Thread, ClosingContextManager):
     _fun_call_from_callback = False
     _my_chanid = 0
     _my_chan = None
+    _my_chan_temp_forWeakref = None #??? try to think
     # define by bwz end
 
     _PROTO_ID = "2.0"
@@ -1254,8 +1255,7 @@ class Transport(threading.Thread, ClosingContextManager):
             chan = Channel(chanid)
             self._channels.put(chanid, chan)
             print("[open_channel_noblocking]: chanid:%u" %chanid)
-            chant = self._channels.get(chanid)
-            print(self._channels, chant, self._channels._map)
+            self._my_chan_temp_forWeakref = chan
             self.channel_events[chanid] = event = threading.Event()
             callbacktable["event"] = event
             self.channels_seen[chanid] = True
