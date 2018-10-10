@@ -1303,7 +1303,7 @@ class Transport(threading.Thread, ClosingContextManager):
             return
         self._my_chan.get_pty_noblocking(term, width, height, width_pixels, height_pixels)
 
-    def get_pty_noblocking_callback(self)
+    def get_pty_noblocking_callback(self):
         self._my_chan.get_pty_noblocking_callback()
             
 

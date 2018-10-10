@@ -204,7 +204,7 @@ class Channel(ClosingContextManager):
         self._wait_for_event()
 
 
-    def get_pty_noblocking_callback(self)
+    def get_pty_noblocking_callback(self):
         self._wait_for_event()
     
     @open_only
