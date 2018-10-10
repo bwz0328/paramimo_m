@@ -2686,7 +2686,7 @@ class Transport(threading.Thread, ClosingContextManager):
                             break
                     #print("run  2!")
                     if ptype in self._handler_table:
-                        #print("run  3!")
+                        print("run  3!")
                         error_msg = self._ensure_authed(ptype, m)
                         if error_msg:
                             self._send_message(error_msg)
@@ -2701,7 +2701,7 @@ class Transport(threading.Thread, ClosingContextManager):
                                     if_close = True
                             
                     elif ptype in self._channel_handler_table:
-                        #print("run  4!")
+                        print("run  4!")
                         chanid = m.get_int()
                         chan = self._channels.get(chanid)
                         if chan is not None:
@@ -3436,10 +3436,12 @@ class Transport(threading.Thread, ClosingContextManager):
             return
         self.lock.acquire()
         try:
+            print("[_parse_channel_open_success]: try")
             chan._set_remote_channel(
                 server_chanid, server_window_size, server_max_packet_size
             )
             self._log(DEBUG, "Secsh channel {:d} opened.".format(chanid))
+            print("[_parse_channel_open_success]: channel opened")
             if chanid in self.channel_events:
                 print("[_parse_channel_open_success] event %s",chanid)
                 self.channel_events[chanid].set()
