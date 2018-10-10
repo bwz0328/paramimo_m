@@ -1151,7 +1151,7 @@ class Transport(threading.Thread, ClosingContextManager):
             e = SSHException("Unable to open channel.")
         raise e
 
-    def open_channel_noblocking_callback(self, event):
+    def open_channel_noblocking_callback(self, event, timeout):
         timeout = 3600 if timeout is None else timeout
         start_ts = time.time()
         while True:
@@ -1221,7 +1221,7 @@ class Transport(threading.Thread, ClosingContextManager):
             Added the ``window_size`` and ``max_packet_size`` arguments.
         """
         locinput = locals()
-        callbacktable = {}
+        callbacktable = {"timeout":timeout}
         if not callbydoing:
             if not self._insert_func(sys._getframe().f_code.co_name, locinput):
                 print("[open_channel_noblocking]: in todo list")
