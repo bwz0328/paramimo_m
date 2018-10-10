@@ -1222,7 +1222,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 return
         else:
             self._insert_func_when_doing(sys._getframe().f_code.co_name, locinput, "open_channel_noblocking_callback", callbacktable)
-            
+        print("[open_channel_noblocking]: runing")
         if not self.active:
             raise SSHException("SSH session not active")
         timeout = 3600 if timeout is None else timeout
