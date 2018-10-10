@@ -157,6 +157,7 @@ class Transport(threading.Thread, ClosingContextManager):
     _my_chanid = 0
     _my_chan = None
     _my_chan_temp_forWeakref = None #??? try to think
+    _ifCanRead = False
     # define by bwz end
 
     _PROTO_ID = "2.0"
@@ -1314,6 +1315,14 @@ class Transport(threading.Thread, ClosingContextManager):
         self._my_chan.invoke_shell_noblocking()
     def invoke_shell_noblocking_callback(self):
         self._my_chan.invoke_shell_noblocking_callback()
+
+
+    def read_noblocking(self, nbytes = 1024)
+        if not self._ifCanRead:
+            return 0
+        if self._my_chan.recv_ready():
+            return self._my_chan.recv(nbytes)
+            
             
 
     def request_port_forward(self, address, port, handler=None):
@@ -2722,6 +2731,8 @@ class Transport(threading.Thread, ClosingContextManager):
                         if chan is not None:
                             self._channel_handler_table[ptype](chan, m)
                             #is ugly ,change it   MSG_CHANNEL_SUCCESS 99
+                            if (ptype == MSG_CHANNEL_DATA):
+                                self._ifCanRead = True
                             if (ptype == MSG_CHANNEL_SUCCESS):
                                 try:
                                     self._completion_callback()  
