@@ -2688,6 +2688,14 @@ class Transport(threading.Thread, ClosingContextManager):
                             self._send_message(error_msg)
                         else:
                             self._handler_table[ptype](self, m)
+                            #is ugly ,change it  
+                            if (ptype == MSG_CHANNEL_OPEN_SUCCESS or ptype == MSG_CHANNEL_OPEN_FAILURE):
+                                try:
+                                    self._completion_callback()  
+                                except Exception as e:
+                                    print(e)
+                                    if_close = True
+                            
                     elif ptype in self._channel_handler_table:
                         #print("run  4!")
                         chanid = m.get_int()
@@ -2695,12 +2703,12 @@ class Transport(threading.Thread, ClosingContextManager):
                         if chan is not None:
                             self._channel_handler_table[ptype](chan, m)
                             #is ugly ,change it   MSG_CHANNEL_SUCCESS
-                            if (ptype == MSG_CHANNEL_SUCCESS):
-                                try:
-                                    self._completion_callback()  
-                                except Exception as e:
-                                    print(e)
-                                    if_close = True
+                            #if (ptype == MSG_CHANNEL_SUCCESS):
+                            #    try:
+                            #        self._completion_callback()  
+                            #    except Exception as e:
+                            #        print(e)
+                            #        if_close = True
                         elif chanid in self.channels_seen:
                             self._log(
                                 DEBUG,
