@@ -587,7 +587,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 if 'self' in callbackPara:
                     callbackPara.pop("self")
                 try:
-                    print("[_completion_callback] : call next callback", self._fun_doing["next"]["funcCallback"], callbackPara)
+                    print("    [_completion_callback] : call next callback", self._fun_doing["next"]["funcCallback"], callbackPara)
                     eval("self." + self._fun_doing["next"]["funcCallback"])(**callbackPara)
                 except:
                     raise
@@ -599,7 +599,7 @@ class Transport(threading.Thread, ClosingContextManager):
             if 'self' in callbackPara:
                 callbackPara.pop("self")
             try:
-                print("[_completion_callback] : call callback", self._fun_doing["funcCallback"], callbackPara)
+                print("    [_completion_callback] : call callback", self._fun_doing["funcCallback"], callbackPara)
                 eval("self." + self._fun_doing["funcCallback"])(**callbackPara)
             except:
                 raise
@@ -618,13 +618,13 @@ class Transport(threading.Thread, ClosingContextManager):
                 #print(todolist)
                 if 'self' in para:
                     para.pop("self")
-                print("[_completion_callback] : call next function", todolist["funcName"], para)
+                print("    [_completion_callback] : call next function", todolist["funcName"], para)
                 eval("self." + todolist["funcName"])(**para)
             except:
                 raise
 
     def start_client_noblocking_callback(self, para1, para2):
-        print("start_client success", para1, para2)
+        print("[start_client success]", para1, para2)
     def start_client_noblocking(self, event=None, timeout=None):
         """
         Negotiate a new SSH2 session as a client.  This is the first step after
@@ -728,7 +728,7 @@ class Transport(threading.Thread, ClosingContextManager):
             `.SSHException` -- if negotiation fails (and no ``event`` was
             passed in)
         """
-        print("func Name ", sys._getframe().f_code.co_name)
+        print("[start_client]", sys._getframe().f_code.co_name)
         self.active = True
         if event is not None:
             # async, return immediately and let the app poll for completion
@@ -742,7 +742,7 @@ class Transport(threading.Thread, ClosingContextManager):
         max_time = time.time() + timeout if timeout is not None else None
         #need to change an other way to find if timeout!
         while True:
-            print("[start_client] :runing here")
+            print("    [start_client] :runing here")
             event.wait(0.1)
             if not self.active:
                 e = self.get_exception()
@@ -752,7 +752,7 @@ class Transport(threading.Thread, ClosingContextManager):
             if event.is_set() or (
                 timeout is not None and time.time() >= max_time
             ):
-                print("[start_client] :", event.is_set())
+                print("    [start_client] :", event.is_set())
                 break
                 
     def start_server(self, event=None, server=None):
@@ -1135,7 +1135,7 @@ class Transport(threading.Thread, ClosingContextManager):
         print("[open_channel]  begin to wait")
         while True:
             event.wait(0.1)
-            print("[open_channel] open channel Ok?")
+            print("    [open_channel] open channel Ok?")
             if not self.active:
                 e = self.get_exception()
                 if e is None:
@@ -1255,7 +1255,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 m.add_int(src_addr[1])
             chan = Channel(chanid)
             self._channels.put(chanid, chan)
-            print("[open_channel_noblocking]: chanid:%u" %chanid)
+            print("    [open_channel_noblocking]: chanid:%u" %chanid)
             self._my_chan_temp_forWeakref = chan
             self.channel_events[chanid] = event = threading.Event()
             callbacktable["event"] = event
@@ -3463,19 +3463,19 @@ class Transport(threading.Thread, ClosingContextManager):
         print("[_parse_channel_open_success]: 1, chanid:%u" %chanid)
         print(self._channels)
         if chan is None:
-            print("[_parse_channel_open_success]: 2")
+            print("    [_parse_channel_open_success]: 2")
             self._log(WARNING, "Success for unrequested channel! [??]")
             return
         self.lock.acquire()
         try:
-            print("[_parse_channel_open_success]: try")
+            print("    [_parse_channel_open_success]: try")
             chan._set_remote_channel(
                 server_chanid, server_window_size, server_max_packet_size
             )
             self._log(DEBUG, "Secsh channel {:d} opened.".format(chanid))
-            print("[_parse_channel_open_success]: channel opened")
+            print("    [_parse_channel_open_success]: channel opened")
             if chanid in self.channel_events:
-                print("[_parse_channel_open_success] event %s",chanid)
+                print("    [_parse_channel_open_success] event %s",chanid)
                 self.channel_events[chanid].set()
                 del self.channel_events[chanid]
         finally:
