@@ -1282,6 +1282,21 @@ class Transport(threading.Thread, ClosingContextManager):
         raise e
         '''
 
+    def get_pty_noblocking(
+        self,
+        term="vt100",
+        width=80,
+        height=24,
+        width_pixels=0,
+        height_pixels=0,
+    ):
+        locinput = locals()
+        if not self._insert_func(sys._getframe().f_code.co_name, locinput):
+            print("[get_pty_noblocking]: in todo list")
+            return
+        self._my_chan.get_pty(term, width, height, width_pixels, height_pixels)
+            
+
     def request_port_forward(self, address, port, handler=None):
         """
         Ask the server to forward TCP connections from a listening port on
