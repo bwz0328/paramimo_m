@@ -1253,7 +1253,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 m.add_int(src_addr[1])
             chan = Channel(chanid)
             self._channels.put(chanid, chan)
-            print("[open_channel_noblocking]: %u" %chanid)
+            print("[open_channel_noblocking]: chanid:%u" %chanid)
             self.channel_events[chanid] = event = threading.Event()
             callbacktable["event"] = event
             self.channels_seen[chanid] = True
@@ -3432,7 +3432,8 @@ class Transport(threading.Thread, ClosingContextManager):
         server_window_size = m.get_int()
         server_max_packet_size = m.get_int()
         chan = self._channels.get(chanid)
-        print("[_parse_channel_open_success]: 1, %u" %chanid)
+        print("[_parse_channel_open_success]: 1, chanid:%u" %chanid)
+        print(self._channels)
         if chan is None:
             print("[_parse_channel_open_success]: 2")
             self._log(WARNING, "Success for unrequested channel! [??]")
