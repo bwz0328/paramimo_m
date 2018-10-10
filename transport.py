@@ -3431,7 +3431,9 @@ class Transport(threading.Thread, ClosingContextManager):
         server_window_size = m.get_int()
         server_max_packet_size = m.get_int()
         chan = self._channels.get(chanid)
+        print("[_parse_channel_open_success]: 1")
         if chan is None:
+            print("[_parse_channel_open_success]: 2")
             self._log(WARNING, "Success for unrequested channel! [??]")
             return
         self.lock.acquire()
