@@ -566,12 +566,13 @@ class Transport(threading.Thread, ClosingContextManager):
             return False
     def _insert_func_when_doing(self, funcName, funcPara, funcCallback = None, funcCbPara = {}):
         #change to support  insert morethen one function
-        if (self._fun_doing is not None):
+        print("[_insert_func_when_doing]: called")
+        if self._fun_doing is not None:
             self._fun_doing["next"] = {"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara}
             return True
         else:
             print("[_insert_func_when_doing]:cannot come here")
-    
+        print("[_insert_func_when_doing]: called End")
     def _completion_callback(self):
         print("[_completion_callback]: called" )
         if self._fun_doing is None:
@@ -612,7 +613,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 print(todolist)
                 if 'self' in para:
                     para.pop("self")
-                print("[_completion_callback] : next", todolist["funcName"], para)
+                print("[_completion_callback] : call next function", todolist["funcName"], para)
                 eval("self." + todolist["funcName"])(**para)
             except:
                 raise
@@ -1004,7 +1005,7 @@ class Transport(threading.Thread, ClosingContextManager):
             window_size=window_size,
             max_packet_size=max_packet_size,
             timeout=timeout,
-            callbydoing = True
+            callbydoing = True,
         )
 
 
