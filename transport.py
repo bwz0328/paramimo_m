@@ -1305,6 +1305,15 @@ class Transport(threading.Thread, ClosingContextManager):
 
     def get_pty_noblocking_callback(self):
         self._my_chan.get_pty_noblocking_callback()
+
+    def invoke_shell_noblocking(self):
+        locinput = locals()
+        if not self._insert_func(sys._getframe().f_code.co_name, locinput, "invoke_shell_noblocking_callback", {}):
+            print("[invoke_shell_noblocking]: in todo list")
+            return
+        self._my_chan.invoke_shell_noblocking()
+    def invoke_shell_noblocking_callback(self):
+        self._my_chan.invoke_shell_noblocking_callback()
             
 
     def request_port_forward(self, address, port, handler=None):

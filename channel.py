@@ -281,6 +281,40 @@ class Channel(ClosingContextManager):
         self._wait_for_event()
 
     @open_only
+    def invoke_shell_noblocking(self):
+        """
+        Request an interactive shell session on this channel.  If the server
+        allows it, the channel will then be directly connected to the stdin,
+        stdout, and stderr of the shell.
+
+        Normally you would call `get_pty` before this, in which case the
+        shell will operate through the pty, and the channel will be connected
+        to the stdin and stdout of the pty.
+
+        When the shell exits, the channel will be closed and can't be reused.
+        You must open a new channel if you wish to open another shell.
+
+        :raises:
+            `.SSHException` -- if the request was rejected or the channel was
+            closed
+        """
+        m = Message()
+        m.add_byte(cMSG_CHANNEL_REQUEST)
+        m.add_int(self.remote_chanid)
+        m.add_string("shell")
+        m.add_boolean(True)
+        self._event_pending()
+        self.transport._send_user_message(m)
+
+        '''
+        #move to callback
+        self._wait_for_event()
+        '''
+
+    def invoke_shell_noblocking_callback(self):
+        self._wait_for_event()
+
+    @open_only
     def exec_command(self, command):
         """
         Execute a command on the server.  If the server allows it, the channel
