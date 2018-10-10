@@ -571,11 +571,11 @@ class Transport(threading.Thread, ClosingContextManager):
         print("[_insert_func_when_doing]: called")
         if self._fun_doing is not None:
             self._fun_doing["next"] = {"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara}
-            print("[_insert_func_when_doing]: called End1")
+            print("    [_insert_func_when_doing]: called End1")
             return True
         else:
-            print("[_insert_func_when_doing]:cannot come here")
-        print("[_insert_func_when_doing]: called End2")
+            print("    [_insert_func_when_doing]:cannot come here")
+        print("    [_insert_func_when_doing]: called End2")
     def _completion_callback(self):
         print("[_completion_callback]: called" )
         if self._fun_doing is None:
@@ -2677,12 +2677,12 @@ class Transport(threading.Thread, ClosingContextManager):
                     return
                 while self.active:
                     if self.packetizer.need_rekey() and not self.in_kex:
-                        print("run  1!")
+                        print("    [run_for_noblocking]run  1!")
                         self._send_kex_init()
                     try:
-                        print("[run_for_noblocking] ==> readmsg")
+                        print("    [run_for_noblocking] ==> readmsg")
                         ptype, m = self.packetizer.read_message()
-                        print("[run_for_noblocking] ==> get msg, type[" ,ptype , "] Data=>:",m)
+                        print("    [run_for_noblocking] ==> get msg, type[" ,ptype , "] Data=>:")
                     except NeedRekeyException:
                         break
 
@@ -2713,7 +2713,7 @@ class Transport(threading.Thread, ClosingContextManager):
                             break
                     #print("run  2!")
                     if ptype in self._handler_table:
-                        print("run  3!")
+                        print("    [run_for_noblocking]run  3!")
                         error_msg = self._ensure_authed(ptype, m)
                         if error_msg:
                             self._send_message(error_msg)
@@ -2728,7 +2728,7 @@ class Transport(threading.Thread, ClosingContextManager):
                                     if_close = True
                             
                     elif ptype in self._channel_handler_table:
-                        print("run  4!")
+                        print("    [run_for_noblocking]run  4!")
                         chanid = m.get_int()
                         chan = self._channels.get(chanid)
                         if chan is not None:
@@ -2762,7 +2762,7 @@ class Transport(threading.Thread, ClosingContextManager):
                         self.auth_handler is not None
                         and ptype in self.auth_handler._handler_table
                     ):
-                        print("run  5!")
+                        print("    [run_for_noblocking]run  5!")
                         handler = self.auth_handler._handler_table[ptype]
                         handler(self.auth_handler, m)
                         #is ugly ,change it   MSG_USERAUTH_FAILURE 51, MSG_USERAUTH_SUCCESS  52
@@ -2776,7 +2776,7 @@ class Transport(threading.Thread, ClosingContextManager):
                             #continue
                             break
                     else:
-                        print("run  6!")
+                        print("     [run_for_noblocking]run  6!")
                         # Respond with "I don't implement this particular
                         # message type" message (unless the message type was
                         # itself literally MSG_UNIMPLEMENTED, in which case, we
@@ -2794,20 +2794,20 @@ class Transport(threading.Thread, ClosingContextManager):
                     break
                     #============>>>>deal it
                     #self.packetizer.complete_handshake()
-                print("[run_for_noblocking]  End !")
+                print("    [run_for_noblocking]  End !")
             except SSHException as e:
-                print("[run_for_noblocking]  E 1 !")
+                print("    [run_for_noblocking]  E 1 !")
                 self._log(ERROR, "Exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
                 if_close = True
             except EOFError as e:
-                print("[run_for_noblocking]  E 2 !")
+                print("    [run_for_noblocking]  E 2 !")
                 self._log(DEBUG, "EOF in transport thread")
                 self.saved_exception = e
                 if_close = True
             except socket.error as e:
-                print("[run_for_noblocking]  E 3 !")
+                print("    [run_for_noblocking]  E 3 !")
                 if type(e.args) is tuple:
                     if e.args:
                         emsg = "{} ({:d})".format(e.args[1], e.args[0])
@@ -2819,14 +2819,14 @@ class Transport(threading.Thread, ClosingContextManager):
                 self.saved_exception = e
                 if_close = True
             except Exception as e:
-                print("[run_for_noblocking]  E 4 !")
+                print("     [run_for_noblocking]  E 4 !")
                 self._log(ERROR, "Unknown exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
                 if_close = True
             #add by bwz
             except AuthenticationException as e:
-                print("Other Except ,")
+                print("     Other Except ,")
                 self.saved_exception = e
                 if_close = True
                 
