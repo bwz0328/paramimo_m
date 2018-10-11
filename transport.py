@@ -3412,6 +3412,7 @@ class Transport(threading.Thread, ClosingContextManager):
         self.clear_to_send_lock.acquire()
         try:
             self.clear_to_send.set()
+            print("    [_parse_newkeys]: clear_to_send seted")
         finally:
             self.clear_to_send_lock.release()
         return
