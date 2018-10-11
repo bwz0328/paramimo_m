@@ -603,65 +603,63 @@ class Transport(threading.Thread, ClosingContextManager):
         print("[_completion_callback]: called" )
         if self._fun_doing is None:
             return
-        self._taskListLock.acquire()
-        try:
-            #change to support  insert morethen one function
-            if 'next' in self._fun_doing:
-                if self._fun_doing["next"]["funcCallback"] is not None:
-                    callbackPara = self._fun_doing["next"]["funcCbPara"]
-                    if 'self' in callbackPara:
-                        callbackPara.pop("self")
-                    try:
-                        print("    [_completion_callback] : call next callback ", self._fun_doing["next"]["funcCallback"], callbackPara)
-                        eval("self." + self._fun_doing["next"]["funcCallback"])(**callbackPara)
-                    except:
-                        raise
-                    if self._fun_doing["funcCallback"] is not None:
-                        #wait for next callback
-                        return
-            if self._fun_doing["funcCallback"] is not None:
-                callbackPara = self._fun_doing["funcCbPara"]
+        #change to support  insert morethen one function
+        if 'next' in self._fun_doing:
+            if self._fun_doing["next"]["funcCallback"] is not None:
+                callbackPara = self._fun_doing["next"]["funcCbPara"]
                 if 'self' in callbackPara:
                     callbackPara.pop("self")
                 try:
-                    print("    [_completion_callback] : call callback ", self._fun_doing["funcCallback"], callbackPara)
-                    eval("self." + self._fun_doing["funcCallback"] + "(**callbackPara)")
+                    print("    [_completion_callback] : call next callback ", self._fun_doing["next"]["funcCallback"], callbackPara)
+                    eval("self." + self._fun_doing["next"]["funcCallback"])(**callbackPara)
                 except:
                     raise
-                self._fun_doing["funcCallback"] = None
-                #if in callback call func ,should wait
-                if 'next' in self._fun_doing:
-                     if self._fun_doing["next"]["funcCallback"] is not None:
-                         return
-            self._fun_doing = None
-            #do next stuf
-            if (len(self._fun_todo_list) > 0):
+                if self._fun_doing["funcCallback"] is not None:
+                    #wait for next callback
+                    return
+        if self._fun_doing["funcCallback"] is not None:
+            callbackPara = self._fun_doing["funcCbPara"]
+            if 'self' in callbackPara:
+                callbackPara.pop("self")
+            try:
+                print("    [_completion_callback] : call callback ", self._fun_doing["funcCallback"], callbackPara)
+                eval("self." + self._fun_doing["funcCallback"] + "(**callbackPara)")
+            except:
+                raise
+            self._fun_doing["funcCallback"] = None
+            #if in callback call func ,should wait
+            if 'next' in self._fun_doing:
+                 if self._fun_doing["next"]["funcCallback"] is not None:
+                     return
+        self._taskListLock.acquire()  
+        self._fun_doing = None
+        self._taskListLock.release()
+        #do next stuf
+        if (len(self._fun_todo_list) > 0):
+            try:
+                self._taskListLock.acquire() 
+                todolist = self._fun_todo_list[0]
+                del self._fun_todo_list[0]
+                self._taskListLock.release()
+                para = todolist["funcPara"]
+                #print(todolist)
+                if 'self' in para:
+                    para.pop("self")
+                print("    [_completion_callback] : call next function" + todolist["funcName"] , para)
+                print(self)
                 try:
-                    todolist = self._fun_todo_list[0]
-                    del self._fun_todo_list[0]
-                    para = todolist["funcPara"]
-                    #print(todolist)
-                    if 'self' in para:
-                        para.pop("self")
-                    print("    [_completion_callback] : call next function" + todolist["funcName"] , para)
-                    print(self)
-                    try:
-                        evalstr = "self." + todolist["funcName"] + "(**para)"
-                        print( "    [_completion_callback]" + evalstr)
-                        eval(evalstr)
-                    except Exception as e:
-                        print(str(e))
-                        evalstr = "self." + todolist["funcName"] + "(**para)"
-                        print( "    [_completion_callback]" + evalstr)
-                        eval(evalstr)
-                        pass
-                    print(self)
-                except:
-                    raise
-        except:
-            raise
-        finally:
-            self._taskListLock.release()
+                    evalstr = "self." + todolist["funcName"] + "(**para)"
+                    print( "    [_completion_callback]" + evalstr)
+                    eval(evalstr)
+                except Exception as e:
+                    print(str(e))
+                    evalstr = "self." + todolist["funcName"] + "(**para)"
+                    print( "    [_completion_callback]" + evalstr)
+                    eval(evalstr)
+                    pass
+                print(self)
+            except:
+                raise
 
     def start_client_noblocking_callback(self, para1, para2):
         print("[start_client success]", para1, para2)
