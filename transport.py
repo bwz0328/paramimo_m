@@ -398,6 +398,7 @@ class Transport(threading.Thread, ClosingContextManager):
         self.sock = sock
         #add by bwz
         self.threadM = threadm_forSSH()
+        self.threadM.setName("Packet Waiting Thread")
         self.threadM.add_sock(self)
 
         # define by bwz
@@ -413,6 +414,7 @@ class Transport(threading.Thread, ClosingContextManager):
         self._my_chan_temp_forWeakref = None #??? try to think
         self._ifCanRead = False
         self._taskListLock = threading.Lock()
+        
         # define by bwz end
 
         
@@ -2888,6 +2890,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 if_close = True
                 
             if (if_close):
+                print("     [run_for_noblocking]  sock Closed!")
                 _active_threads.remove(self)
                 for chan in list(self._channels.values()):
                     chan._unlink()
@@ -2913,6 +2916,7 @@ class Transport(threading.Thread, ClosingContextManager):
             # everything *if* sys.modules (used as a convenient sentinel)
             # appears to still exist.
             if self.sys.modules is not None:
+                #close ===>>>
                 raise
                 
     def _log_agreement(self, which, local, remote):
