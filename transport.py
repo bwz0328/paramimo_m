@@ -3892,6 +3892,7 @@ class MyEpoll_forSSH:
     __epoll = None
     def __new__(self):
         #print("new:", self)
+        pass
     def __init__(self):
         #print("init:", self)
         self.__epoll = select.epoll()
