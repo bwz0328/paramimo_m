@@ -312,6 +312,7 @@ class Transport(threading.Thread, ClosingContextManager):
         default_max_packet_size=DEFAULT_MAX_PACKET_SIZE,
         gss_kex=False,
         gss_deleg_creds=True,
+        mode = 1,
     ):
         """
         Create a new SSH session over an existing socket, or socket-like
@@ -396,27 +397,28 @@ class Transport(threading.Thread, ClosingContextManager):
         threading.Thread.__init__(self)
         self.setDaemon(True)
         self.sock = sock
-        #add by bwz
-        self.threadM = threadm_forSSH()
-        self.threadM.setName("Packet Waiting Thread")
-        self.threadM.add_sock(self)
 
-        # define by bwz
-        self._deal_state = STATE_INIT_S
-        self._deal_timeouter = 0
-        self._deal_para = None
-        self._fun_todo_list = []
-        self._fun_doing = None
-        self._fun_if_waiting = False
-        self._fun_call_from_callback = False
-        self._my_chanid = 0
-        self._my_chan = None
-        self._my_chan_temp_forWeakref = None #??? try to think
-        self._ifCanRead = False
-        self._taskListLock = threading.Lock()
-        self._connectOkCallback = None
-        self._connectOkCbPara = None
-        # define by bwz end
+        if mode = 0:
+            #add by bwz
+            self.threadM = threadm_forSSH()
+            self.threadM.setName("Packet Waiting Thread")
+            self.threadM.add_sock(self)
+            # define by bwz
+            self._deal_state = STATE_INIT_S
+            self._deal_timeouter = 0
+            self._deal_para = None
+            self._fun_todo_list = []
+            self._fun_doing = None
+            self._fun_if_waiting = False
+            self._fun_call_from_callback = False
+            self._my_chanid = 0
+            self._my_chan = None
+            self._my_chan_temp_forWeakref = None #??? try to think
+            self._ifCanRead = False
+            self._taskListLock = threading.Lock()
+            self._connectOkCallback = None
+            self._connectOkCbPara = None
+            # define by bwz end
 
         
         #maybe can not recyle instance?????
