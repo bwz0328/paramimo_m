@@ -611,7 +611,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 callbackPara.pop("self")
             try:
                 print("    [_completion_callback] : call callback", self._fun_doing["funcCallback"], callbackPara)
-                eval("self." + self._fun_doing["funcCallback"])(**callbackPara)
+                eval("self." + self._fun_doing["funcCallback"] + "(**callbackPara)")
             except:
                 raise
             self._fun_doing["funcCallback"] = None
