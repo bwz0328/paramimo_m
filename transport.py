@@ -414,7 +414,8 @@ class Transport(threading.Thread, ClosingContextManager):
         self._my_chan_temp_forWeakref = None #??? try to think
         self._ifCanRead = False
         self._taskListLock = threading.Lock()
-        
+        self._connectOkCallback = None
+        self._connectOkCbPara = None
         # define by bwz end
 
         
