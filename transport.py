@@ -3961,6 +3961,7 @@ class threadm_forSSH(threading.Thread):
            self.cuCount = self.cuCount - 1
        else:
            #print("Del socket failed!")
+           pass
 
 
 
