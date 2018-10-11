@@ -3885,7 +3885,7 @@ class threadm_forSSH(threading.Thread):
        self.cuCount = 0
        self.timeout = timeout
        self.exitflag = 0
-       #self.start()
+       self.start()
    def run(self):
         while True:
             if self.exitflag == 1:
@@ -3906,8 +3906,8 @@ class threadm_forSSH(threading.Thread):
        self.connectList.append(transport)
        self.mypoll.add_socket(transport.sock, {"transp":transport, "msg":"here is " + str(self.cuCount)})
        self.cuCount = self.cuCount + 1
-       if self.cuCount == 1:
-           self.start()
+       #if self.cuCount == 1:
+           #self.start()
    def del_sock(self, transport):
        #self.connectList.append(transport)
        #self.mypoll.add_socket(transport.sock, {"transp":transport, "msg":"here is " + str(self.cuCount)})
