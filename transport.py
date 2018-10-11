@@ -3935,7 +3935,9 @@ class threadm_forSSH(threading.Thread):
                 for fd in evs:
                     print("sock [%s]===> %s"  %(evs[fd]["info"]["msg"], "***"))
                     for conn in self.connectList:
-                        conn.run_for_noblocking()
+                        sockid = self.get_socket_byfd(fd)
+                        if (sockid == conn.sock):
+                            conn.run_for_noblocking()
 
                    
    def add_sock(self, transport):
