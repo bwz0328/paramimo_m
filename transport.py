@@ -2853,7 +2853,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 self.saved_exception = e
                 if_close = True
             except Exception as e:
-                print("     [run_for_noblocking]  E 4 !")
+                print("     [run_for_noblocking]  E 4 !", str(e))
                 self._log(ERROR, "Unknown exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
