@@ -576,7 +576,7 @@ class Transport(threading.Thread, ClosingContextManager):
     #para.pop("self")
     #self._insert_func(sys._getframe().f_code.co_name, locals())
     def _insert_func(self, funcName, funcPara, funcCallback = None, funcCbPara = {}):
-        print("[_insert_func] called :" + str(funcName))
+        print("[_insert_func] called :" + str(funcName) + "[" + str(self) + "]")
         self._taskListLock.acquire()
         if (self._fun_doing is None):
             self._fun_doing = {"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara}
