@@ -676,6 +676,7 @@ class Transport(threading.Thread, ClosingContextManager):
 
     def start_client_noblocking_callback(self, para1, para2):
         #print("[start_client success]", para1, para2)
+        pass
     def start_client_noblocking(self, event=None, timeout=None):
         """
         Negotiate a new SSH2 session as a client.  This is the first step after
