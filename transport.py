@@ -2678,6 +2678,10 @@ class Transport(threading.Thread, ClosingContextManager):
         if (self._deal_state == STATE_BANNER_S):
             self._check_banner_noblocking()
 
+    def reg_callback(self, func, para = {})
+        self._connectOkCallback = func
+        self._connectOkCbPara = para
+
     @print_instance
     def run_for_noblocking(self, if_init = 0, if_timeout = False):
         # (use the exposed "run" method, because if we specify a thread target
@@ -2795,6 +2799,9 @@ class Transport(threading.Thread, ClosingContextManager):
                             #is ugly ,change it   MSG_CHANNEL_SUCCESS 99
                             if (ptype == MSG_CHANNEL_DATA):
                                 self._ifCanRead = True
+                                if self._connectOkCallback:
+                                    self._connectOkCbPara["transport"] = self
+                                    self._connectOkCallback(self._connectOkCbPara)
                             if (ptype == MSG_CHANNEL_SUCCESS):
                                 try:
                                     self._completion_callback()  
@@ -3031,7 +3038,6 @@ class Transport(threading.Thread, ClosingContextManager):
                 # state not change , waiting data
                 return
             
-
     def _send_kex_init(self):
         """
         announce to the other side that we'd like to negotiate keys, and what
