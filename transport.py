@@ -632,6 +632,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 print("    [_completion_callback] : call next function", todolist["funcName"], para)
                 print(self)
                 try:
+                    eval("print(self)")
                     eval("self." + todolist["funcName"])(**para)
                 except Exception as e:
                     print(str(e))
