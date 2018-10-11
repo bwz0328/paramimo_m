@@ -2735,7 +2735,7 @@ class Transport(threading.Thread, ClosingContextManager):
                         else:
                             self._handler_table[ptype](self, m)
                             #is ugly ,change it  
-                            if (ptype == MSG_CHANNEL_OPEN_SUCCESS or ptype == MSG_CHANNEL_OPEN_FAILURE):
+                            if (ptype == MSG_CHANNEL_OPEN_SUCCESS or ptype == MSG_CHANNEL_OPEN_FAILURE or ptype == MSG_NEWKEYS):
                                 try:
                                     self._completion_callback()  
                                 except Exception as e:
