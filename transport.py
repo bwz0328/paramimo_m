@@ -3896,6 +3896,7 @@ class MyEpoll_forSSH:
         self.__fd_to_socket_info[sockid.fileno()] = {"socket":sockid, "info":info }
     def get_socket_byfd(self, fd):
         sockid = self.__fd_to_socket_info[fd]["socket"]
+        return sockid
     def my_wait(self, timeout = 1):
         event_ret = {}
         events = self.__epoll.poll(timeout)
