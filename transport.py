@@ -3877,30 +3877,44 @@ class MyEpoll_forSSH:
 
 @singleton   
 class threadm_forSSH(threading.Thread):
+   #add lock !!!!
    def __init__(self, timeout = 1):
        threading.Thread.__init__(self)
        self.mypoll = MyEpoll_forSSH()
        self.connectList = []
        self.cuCount = 0
        self.timeout = timeout
-       self.start()
+       self.exitflag = 0
+       #self.start()
    def run(self):
         while True:
+            if self.exitflag == 1:
+                break
             evs = self.mypoll.my_wait(self.timeout)
             if evs is None:
-               print("Timeout 10")
+                #print("Timeout 10")
+                pass
             else:
-               print(evs)
-               for fd in evs:
-                   print("sock [%s]===> %s"  %(evs[fd]["info"]["msg"], "***"))
-                   for conn in self.connectList:
-                       conn.run_for_noblocking()
+                print(evs)
+                for fd in evs:
+                    print("sock [%s]===> %s"  %(evs[fd]["info"]["msg"], "***"))
+                    for conn in self.connectList:
+                        conn.run_for_noblocking()
 
                    
    def add_sock(self, transport):
        self.connectList.append(transport)
        self.mypoll.add_socket(transport.sock, {"transp":transport, "msg":"here is " + str(self.cuCount)})
        self.cuCount = self.cuCount + 1
+       if self.cuCount == 1:
+           self.start()
+   def del_sock(self, transport):
+       #self.connectList.append(transport)
+       #self.mypoll.add_socket(transport.sock, {"transp":transport, "msg":"here is " + str(self.cuCount)})
+       if self.cuCount > 0:
+           self.cuCount = self.cuCount - 1
+       else:
+           print("Del socket failed!")
 
 
 
