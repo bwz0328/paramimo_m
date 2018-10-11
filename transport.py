@@ -2715,7 +2715,10 @@ class Transport(threading.Thread, ClosingContextManager):
                         ptype, m = self.packetizer.read_message()
                         cmdname = str(ptype)
                         if ptype in MSG_NAMES:
-                            cmdname = MSG_NAMES[ptype] + "[" + ptype + "]"
+                            try:
+                                cmdname = MSG_NAMES[ptype] + "[" + str(ptype) + "]"
+                            except:
+                                pass
                         print("    [run_for_noblocking] ==> get msg, type[" , cmdname , "] Data=>:")
                     except NeedRekeyException:
                         break
