@@ -132,6 +132,15 @@ STATE_IN_KEX_S_NEXT = 4
 STATE_S_WAITING_PACKET = 100
 
 
+def print_instance(func):
+    def _print_i(self, *args, **kwds):
+        #print
+        print("[deal instance] ======>:%s"  %(str(self.sock)))
+        return func(self, *args, **kwds)
+
+    return _print_i
+
+
 class Transport(threading.Thread, ClosingContextManager):
     """
     An SSH Transport attaches to a stream (usually a socket), negotiates an
@@ -2625,7 +2634,8 @@ class Transport(threading.Thread, ClosingContextManager):
     def _deal_fsm(self):
         if (self._deal_state == STATE_BANNER_S):
             self._check_banner_noblocking()
-        
+
+    @print_instance
     def run_for_noblocking(self, if_init = 0, if_timeout = False):
         # (use the exposed "run" method, because if we specify a thread target
         # of a private method, threading.Thread will keep a reference to it
