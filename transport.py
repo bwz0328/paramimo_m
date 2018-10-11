@@ -629,11 +629,12 @@ class Transport(threading.Thread, ClosingContextManager):
                 #print(todolist)
                 if 'self' in para:
                     para.pop("self")
-                print("    [_completion_callback] : call next function", todolist["funcName"], para)
+                print("    [_completion_callback] : call next function" + todolist["funcName"] , para)
                 print(self)
                 try:
-                    eval("print(self)")
-                    eval("self." + todolist["funcName"] + "(**para)")
+                    evalstr = "self." + todolist["funcName"] + "(**para)"
+                    print( "    [_completion_callback]" + evalstr)
+                    eval(evalstr)
                 except Exception as e:
                     print(str(e))
                     eval("self.get_pty_noblocking(**para)")
