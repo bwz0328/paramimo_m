@@ -135,9 +135,9 @@ STATE_S_WAITING_PACKET = 100
 def print_instance(func):
     def _print_i(self, *args, **kwds):
         #print
-        print("\n[deal instance] ======>:%s"  %(str(self.sock)))
+        print("\n[deal instance] ======>:%s [%s]"  %(str(self.sock) , self))
         ret = func(self, *args, **kwds)
-        print("[deal instance] ======>:%s End!\n"  %(str(self.sock)))
+        print("[deal instance] ======>:%s [%s] End!\n"  %(str(self.sock, self)))
         return ret
 
     return _print_i
@@ -576,7 +576,7 @@ class Transport(threading.Thread, ClosingContextManager):
     #para.pop("self")
     #self._insert_func(sys._getframe().f_code.co_name, locals())
     def _insert_func(self, funcName, funcPara, funcCallback = None, funcCbPara = {}):
-        #funcPara.pop("self")
+        print("[_insert_func] called :" + str(funcName))
         self._taskListLock.acquire()
         if (self._fun_doing is None):
             self._fun_doing = {"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara}
@@ -584,6 +584,8 @@ class Transport(threading.Thread, ClosingContextManager):
             return True
         else:
             self._fun_todo_list.append({"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara})
+            for funccc in self._fun_todo_list:
+                print(funccc["funcName"])
             self._taskListLock.release()
             return False
     def _insert_func_when_doing(self, funcName, funcPara, funcCallback = None, funcCbPara = {}):
@@ -601,7 +603,7 @@ class Transport(threading.Thread, ClosingContextManager):
         print("    [_insert_func_when_doing]: called End2")
     def _completion_callback(self):
         print("[_completion_callback]: called" )
-        print("[_completion_callback]:  doing ", self._fun_doing)
+        print("[_completion_callback]:  doing ", self._fun_doing , len(self._fun_todo_list))
         for funccc in self._fun_todo_list:
             print(funccc["funcName"])
         if self._fun_doing is None:
