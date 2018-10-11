@@ -1331,6 +1331,7 @@ class Transport(threading.Thread, ClosingContextManager):
         if not self._insert_func(sys._getframe().f_code.co_name, locinput, "get_pty_noblocking_callback", {}):
             print("[get_pty_noblocking]: in todo list")
             return
+        print("[get_pty_noblocking]: call function in transport")
         self._my_chan.get_pty_noblocking(term, width, height, width_pixels, height_pixels)
 
     def get_pty_noblocking_callback(self):
