@@ -630,7 +630,12 @@ class Transport(threading.Thread, ClosingContextManager):
                 if 'self' in para:
                     para.pop("self")
                 print("    [_completion_callback] : call next function", todolist["funcName"], para)
-                eval("self." + todolist["funcName"])(**para)
+                print(self)
+                try:
+                    eval("self." + todolist["funcName"])(**para)
+                except:
+                    pass
+                print(self)
             except:
                 raise
 
