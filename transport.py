@@ -633,7 +633,8 @@ class Transport(threading.Thread, ClosingContextManager):
                 print(self)
                 try:
                     eval("self." + todolist["funcName"])(**para)
-                except:
+                except Exception as e:
+                    print(str(e))
                     pass
                 print(self)
             except:
