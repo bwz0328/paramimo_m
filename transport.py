@@ -2735,7 +2735,7 @@ class Transport(threading.Thread, ClosingContextManager):
                         else:
                             self._handler_table[ptype](self, m)
                             #is ugly ,change it  
-                            if (ptype == MSG_CHANNEL_OPEN_SUCCESS or ptype == MSG_CHANNEL_OPEN_FAILURE):
+                            if (ptype == MSG_CHANNEL_OPEN_SUCCESS or ptype == MSG_CHANNEL_OPEN_FAILURE or ptype == MSG_NEWKEYS):
                                 try:
                                     self._completion_callback()  
                                 except Exception as e:
@@ -3405,7 +3405,7 @@ class Transport(threading.Thread, ClosingContextManager):
         # send an event?
         if self.completion_event is not None:
             self.completion_event.set()
-            self._completion_callback()
+            #self._completion_callback()
         # it's now okay to send data again (if this was a re-key)
         if not self.packetizer.need_rekey():
             self.in_kex = False
