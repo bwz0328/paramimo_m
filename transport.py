@@ -2708,7 +2708,10 @@ class Transport(threading.Thread, ClosingContextManager):
                     try:
                         print("    [run_for_noblocking] ==> readmsg")
                         ptype, m = self.packetizer.read_message()
-                        print("    [run_for_noblocking] ==> get msg, type[" ,ptype , "] Data=>:")
+                        cmdname = str(ptype)
+                        if ptype in MSG_NAMES:
+                            cmdname = MSG_NAMES[ptype]
+                        print("    [run_for_noblocking] ==> get msg, type[" , cmdname , "] Data=>:")
                     except NeedRekeyException:
                         break
 
