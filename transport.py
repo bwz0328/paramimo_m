@@ -2801,7 +2801,7 @@ class Transport(threading.Thread, ClosingContextManager):
                                 self._ifCanRead = True
                                 if self._connectOkCallback:
                                     self._connectOkCbPara["transport"] = self
-                                    self._connectOkCallback(self._connectOkCbPara)
+                                    self._connectOkCallback(**self._connectOkCbPara)
                             if (ptype == MSG_CHANNEL_SUCCESS):
                                 try:
                                     self._completion_callback()  
