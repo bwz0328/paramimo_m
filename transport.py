@@ -636,6 +636,7 @@ class Transport(threading.Thread, ClosingContextManager):
                     eval("self." + todolist["funcName"] + "(**para)")
                 except Exception as e:
                     print(str(e))
+                    self.get_pty_noblocking(**para)
                     pass
                 print(self)
             except:
