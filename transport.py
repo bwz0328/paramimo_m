@@ -3915,6 +3915,7 @@ class threadm_forSSH(threading.Thread):
        self.cuCount = 0
        self.timeout = timeout
        self.exitflag = 0
+       self.repCount = 0
        self.start()
    def run(self):
         while True:
@@ -3922,6 +3923,10 @@ class threadm_forSSH(threading.Thread):
                 break
             evs = self.mypoll.my_wait(self.timeout)
             if evs is None:
+                self.repCount = self.repCount + 1
+                if self.repCount > 10:
+                    print("Timeout 10")
+                    self.repCount = 0
                 #print("Timeout 10")
                 pass
             else:
