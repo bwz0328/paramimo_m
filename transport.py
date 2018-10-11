@@ -2678,7 +2678,7 @@ class Transport(threading.Thread, ClosingContextManager):
         if (self._deal_state == STATE_BANNER_S):
             self._check_banner_noblocking()
 
-    def reg_callback(self, func, para = {})
+    def reg_callback(self, func, para = {}):
         self._connectOkCallback = func
         self._connectOkCbPara = para
 
