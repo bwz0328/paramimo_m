@@ -1245,7 +1245,9 @@ class Transport(threading.Thread, ClosingContextManager):
         if not self.active:
             raise SSHException("SSH session not active")
         timeout = 3600 if timeout is None else timeout
+        print("    [open_channel_noblocking]: try to get lock")
         self.lock.acquire()
+        print("    [open_channel_noblocking]  get lock ok")
         try:
             window_size = self._sanitize_window_size(window_size)
             max_packet_size = self._sanitize_packet_size(max_packet_size)
@@ -2282,6 +2284,7 @@ class Transport(threading.Thread, ClosingContextManager):
         start = time.time()
         while True:
             self.clear_to_send.wait(0.1)
+            print("    [_send_user_message]:waiting")
             if not self.active:
                 self._log(
                     DEBUG, "Dropping user packet because connection is dead."
