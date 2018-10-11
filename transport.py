@@ -157,20 +157,6 @@ class Transport(threading.Thread, ClosingContextManager):
     _ENCRYPT = object()
     _DECRYPT = object()
 
-    # define by bwz
-    _deal_state = STATE_INIT_S
-    _deal_timeouter = 0
-    _deal_para = None
-    _fun_todo_list = []
-    _fun_doing = None
-    _fun_if_waiting = False
-    _fun_call_from_callback = False
-    _my_chanid = 0
-    _my_chan = None
-    _my_chan_temp_forWeakref = None #??? try to think
-    _ifCanRead = False
-    _taskListLock = threading.Lock()
-    # define by bwz end
 
     _PROTO_ID = "2.0"
     _CLIENT_ID = "paramiko_{}".format(paramiko.__version__)
@@ -413,6 +399,23 @@ class Transport(threading.Thread, ClosingContextManager):
         #add by bwz
         self.threadM = threadm_forSSH()
         self.threadM.add_sock(self)
+
+        # define by bwz
+        self._deal_state = STATE_INIT_S
+        self._deal_timeouter = 0
+        self._deal_para = None
+        self._fun_todo_list = []
+        self._fun_doing = None
+        self._fun_if_waiting = False
+        self._fun_call_from_callback = False
+        self._my_chanid = 0
+        self._my_chan = None
+        self._my_chan_temp_forWeakref = None #??? try to think
+        self._ifCanRead = False
+        self._taskListLock = threading.Lock()
+        # define by bwz end
+
+        
         #maybe can not recyle instance?????
         #add by bwz end
         # we set the timeout so we can check self.active periodically to
