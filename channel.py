@@ -187,7 +187,7 @@ class Channel(ClosingContextManager):
             `.SSHException` -- if the request was rejected or the channel was
             closed
         """
-        print("[get_pty]:run")
+        #print("[get_pty]:run")
         m = Message()
         m.add_byte(cMSG_CHANNEL_REQUEST)
         m.add_int(self.remote_chanid)
@@ -234,7 +234,7 @@ class Channel(ClosingContextManager):
             `.SSHException` -- if the request was rejected or the channel was
             closed
         """
-        print("[get_pty]:run")
+        #print("[get_pty]:run")
         m = Message()
         m.add_byte(cMSG_CHANNEL_REQUEST)
         m.add_int(self.remote_chanid)
