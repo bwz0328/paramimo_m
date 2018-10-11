@@ -1908,6 +1908,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 return self.auth_handler.wait_for_response(my_event)
             finally:
                 #print("[auth_password_noblocking_callback] finally")
+                pass
         except BadAuthenticationType as e:
             # if password auth isn't allowed, but keyboard-interactive *is*,
             # try to fudge it
