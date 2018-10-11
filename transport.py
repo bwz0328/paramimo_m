@@ -601,6 +601,7 @@ class Transport(threading.Thread, ClosingContextManager):
         print("    [_insert_func_when_doing]: called End2")
     def _completion_callback(self):
         print("[_completion_callback]: called" )
+        print("[_completion_callback]:  doing ", self._fun_doing, "  todo   ", self._fun_todo_list)
         if self._fun_doing is None:
             return
         #change to support  insert morethen one function
@@ -645,7 +646,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 #print(todolist)
                 if 'self' in para:
                     para.pop("self")
-                print("    [_completion_callback] : call next function" + todolist["funcName"] , para)
+                print("    [_completion_callback] : call next function " + todolist["funcName"] , para)
                 print(self)
                 try:
                     evalstr = "self." + todolist["funcName"] + "(**para)"
