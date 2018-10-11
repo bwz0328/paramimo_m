@@ -398,7 +398,7 @@ class Transport(threading.Thread, ClosingContextManager):
         self.setDaemon(True)
         self.sock = sock
 
-        if mode == 0:
+        if mode == 1:
             #add by bwz
             self.threadM = threadm_forSSH()
             self.threadM.setName("Packet Waiting Thread")
