@@ -2701,7 +2701,28 @@ class Transport(threading.Thread, ClosingContextManager):
         # interpreter shutdown.
         #print("[run_for_noblocking] :come into here")
         self._timeout_deal()
-        self._deal_fsm()
+        try:
+           self._deal_fsm()
+        except:
+            #ugly ,change it
+            _active_threads.remove(self)
+            for chan in list(self._channels.values()):
+                chan._unlink()
+            if self.active:
+                self.active = False
+                self.packetizer.close()
+                if self.completion_event is not None:
+                    self.completion_event.set()
+                if self.auth_handler is not None:
+                    self.auth_handler.abort()
+                for event in self.channel_events.values():
+                    event.set()
+                try:
+                    self.lock.acquire()
+                    self.server_accept_cv.notify()
+                finally:
+                    self.lock.release()
+            self.sock.close()
         if if_init == 1:
             self.sys = sys
             _active_threads.append(self)
