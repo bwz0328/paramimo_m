@@ -616,7 +616,7 @@ class Transport(threading.Thread, ClosingContextManager):
         print_prv("[_completion_callback]: called" )
         print_prv("[_completion_callback]:  doing ", self._fun_doing , len(self._fun_todo_list))
         for funccc in self._fun_todo_list:
-            print(funccc["funcName"])
+            print_prv(funccc["funcName"])
         if self._fun_doing is None:
             return
         #change to support  insert morethen one function
@@ -665,12 +665,12 @@ class Transport(threading.Thread, ClosingContextManager):
                 print(self)
                 try:
                     evalstr = "self." + todolist["funcName"] + "(**para)"
-                    print( "    [_completion_callback]" + evalstr)
+                    print_prv("    [_completion_callback]" + evalstr)
                     eval(evalstr)
                 except Exception as e:
-                    print(str(e))
+                    print_prv(str(e))
                     evalstr = "self." + todolist["funcName"] + "(**para)"
-                    print( "    [_completion_callback]" + evalstr)
+                    print_prv("    [_completion_callback]" + evalstr)
                     eval(evalstr)
                     pass
                 print(self)
@@ -2708,7 +2708,7 @@ class Transport(threading.Thread, ClosingContextManager):
            self._deal_fsm()
         except:
             #ugly ,change it
-            print("           [run_for_noblocking] close1.")
+            print_prv("           [run_for_noblocking] close1.")
             _active_threads.remove(self)
             for chan in list(self._channels.values()):
                 chan._unlink()
@@ -2930,7 +2930,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 if_close = True
                 
             if (if_close):
-                print("           [run_for_noblocking] close2.")
+                print_prv("           [run_for_noblocking] close2.")
                 _active_threads.remove(self)
                 for chan in list(self._channels.values()):
                     chan._unlink()
