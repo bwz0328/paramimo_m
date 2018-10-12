@@ -4,6 +4,7 @@
 
 
 def print_prv(*data):
-    print(data)
+    #print(data)
+    pass
 
 
