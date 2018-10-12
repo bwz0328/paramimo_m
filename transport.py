@@ -2705,6 +2705,7 @@ class Transport(threading.Thread, ClosingContextManager):
            self._deal_fsm()
         except:
             #ugly ,change it
+            print("           [run_for_noblocking] close1.")
             _active_threads.remove(self)
             for chan in list(self._channels.values()):
                 chan._unlink()
@@ -2926,7 +2927,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 if_close = True
                 
             if (if_close):
-                #print("     [run_for_noblocking]  sock Closed!")
+                print("           [run_for_noblocking] close2.")
                 _active_threads.remove(self)
                 for chan in list(self._channels.values()):
                     chan._unlink()
