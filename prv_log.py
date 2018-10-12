@@ -3,7 +3,7 @@
 
 
 
-def print_prv(*data)
+def print_prv(*data):
     print(*data)
 
 
