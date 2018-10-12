@@ -110,6 +110,7 @@ from paramiko.ssh_exception import (
 )
 from paramiko.util import retry_on_signal, ClosingContextManager, clamp_value
 
+from prv_log import print_prv
 
 # for thread cleanup
 _active_threads = []
@@ -135,9 +136,9 @@ STATE_S_WAITING_PACKET = 100
 def print_instance(func):
     def _print_i(self, *args, **kwds):
         #print
-        #print("\n[deal instance] ======>:%s [%s]"  %(str(self.sock) , self))
+        print_prv("\n[deal instance] ======>:%s [%s]"  %(str(self.sock) , self))
         ret = func(self, *args, **kwds)
-        #print("[deal instance] ======>:%s [%s] End!\n"  %(str(self.sock), self))
+        print_prv("[deal instance] ======>:%s [%s] End!\n"  %(str(self.sock), self))
         return ret
 
     return _print_i
@@ -584,7 +585,7 @@ class Transport(threading.Thread, ClosingContextManager):
     #para.pop("self")
     #self._insert_func(sys._getframe().f_code.co_name, locals())
     def _insert_func(self, funcName, funcPara, funcCallback = None, funcCbPara = {}):
-        #print("[_insert_func] called :" + str(funcName) + "[" + str(self) + "]")
+        print_prv("[_insert_func] called :" + str(funcName) + "[" + str(self) + "]")
         self._taskListLock.acquire()
         if (self._fun_doing is None):
             self._fun_doing = {"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara}
@@ -598,20 +599,20 @@ class Transport(threading.Thread, ClosingContextManager):
             return False
     def _insert_func_when_doing(self, funcName, funcPara, funcCallback = None, funcCbPara = {}):
         #change to support  insert morethen one function
-        #print("[_insert_func_when_doing]: called")
+        print_prv("[_insert_func_when_doing]: called")
         self._taskListLock.acquire()
         if self._fun_doing is not None:
             self._fun_doing["next"] = {"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara}
             self._taskListLock.release()
-            #print("    [_insert_func_when_doing]: called End1")
+            print_prv("    [_insert_func_when_doing]: called End1")
             return True
         else:
             self._taskListLock.release()
-            #print("    [_insert_func_when_doing]:cannot come here")
-        #print("    [_insert_func_when_doing]: called End2")
+            print_prv("    [_insert_func_when_doing]:cannot come here")
+        print_prv("    [_insert_func_when_doing]: called End2")
     def _completion_callback(self):
-        #print("[_completion_callback]: called" )
-        #print("[_completion_callback]:  doing ", self._fun_doing , len(self._fun_todo_list))
+        print_prv("[_completion_callback]: called" )
+        print_prv("[_completion_callback]:  doing ", self._fun_doing , len(self._fun_todo_list))
         for funccc in self._fun_todo_list:
             print(funccc["funcName"])
         if self._fun_doing is None:
@@ -623,7 +624,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 if 'self' in callbackPara:
                     callbackPara.pop("self")
                 try:
-                    #print("    [_completion_callback] : call next callback ", self._fun_doing["next"]["funcCallback"], callbackPara)
+                    print_prv("    [_completion_callback] : call next callback ", self._fun_doing["next"]["funcCallback"], callbackPara)
                     eval("self." + self._fun_doing["next"]["funcCallback"])(**callbackPara)
                 except:
                     raise
@@ -635,7 +636,7 @@ class Transport(threading.Thread, ClosingContextManager):
             if 'self' in callbackPara:
                 callbackPara.pop("self")
             try:
-                #print("    [_completion_callback] : call callback ", self._fun_doing["funcCallback"], callbackPara)
+                print_prv("    [_completion_callback] : call callback ", self._fun_doing["funcCallback"], callbackPara)
                 eval("self." + self._fun_doing["funcCallback"] + "(**callbackPara)")
             except:
                 raise
@@ -658,7 +659,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 #print(todolist)
                 if 'self' in para:
                     para.pop("self")
-                #print("    [_completion_callback] : call next function " + todolist["funcName"] , para)
+                print_prv("    [_completion_callback] : call next function " + todolist["funcName"] , para)
                 print(self)
                 try:
                     evalstr = "self." + todolist["funcName"] + "(**para)"
@@ -675,7 +676,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 raise
 
     def start_client_noblocking_callback(self, para1, para2):
-        #print("[start_client success]", para1, para2)
+        print_prv("[start_client success]", para1, para2)
         pass
     def start_client_noblocking(self, event=None, timeout=None):
         """
@@ -713,7 +714,7 @@ class Transport(threading.Thread, ClosingContextManager):
             passed in)
         """
         if not self._insert_func(sys._getframe().f_code.co_name, locals(), "start_client_noblocking_callback", {"para1":"p1", "para2":"p2"}):
-            #print("[start_client_noblocking]: in todo list")
+            print_prv("[start_client_noblocking]: in todo list")
             return
         self.active = True
         if event is not None:
@@ -732,7 +733,7 @@ class Transport(threading.Thread, ClosingContextManager):
         '''
         #need to change an other way to find if timeout!
         while True:
-            #print("[start_client] :runing here")
+            print_prv("[start_client] :runing here")
             event.wait(0.1)
             if not self.active:
                 e = self.get_exception()
@@ -780,7 +781,7 @@ class Transport(threading.Thread, ClosingContextManager):
             `.SSHException` -- if negotiation fails (and no ``event`` was
             passed in)
         """
-        #print("[start_client]", sys._getframe().f_code.co_name)
+        print_prv("[start_client]", sys._getframe().f_code.co_name)
         self.active = True
         if event is not None:
             # async, return immediately and let the app poll for completion
@@ -794,7 +795,7 @@ class Transport(threading.Thread, ClosingContextManager):
         max_time = time.time() + timeout if timeout is not None else None
         #need to change an other way to find if timeout!
         while True:
-            #print("    [start_client] :runing here")
+            print_prv("    [start_client] :runing here")
             event.wait(0.1)
             if not self.active:
                 e = self.get_exception()
@@ -804,7 +805,7 @@ class Transport(threading.Thread, ClosingContextManager):
             if event.is_set() or (
                 timeout is not None and time.time() >= max_time
             ):
-                #print("    [start_client] :", event.is_set())
+                print_prv("    [start_client] :", event.is_set())
                 break
                 
     def start_server(self, event=None, server=None):
@@ -1053,9 +1054,9 @@ class Transport(threading.Thread, ClosingContextManager):
         """
         locinput = locals()
         if not self._insert_func(sys._getframe().f_code.co_name, locinput):
-            #print("[open_session_noblocking]: in todo list")
+            print_prv("[open_session_noblocking]: in todo list")
             return
-        #print("[open_session_noblocking] running")
+        print_prv("[open_session_noblocking] running")
         #can open many channel , now support one only
         return self.open_channel_noblocking(
             "session",
@@ -1184,10 +1185,10 @@ class Transport(threading.Thread, ClosingContextManager):
             self.lock.release()
         self._send_user_message(m)
         start_ts = time.time()
-        #print("[open_channel]  begin to wait")
+        print_prv("[open_channel]  begin to wait")
         while True:
             event.wait(0.1)
-            #print("    [open_channel] open channel Ok?")
+            print_prv("    [open_channel] open channel Ok?")
             if not self.active:
                 e = self.get_exception()
                 if e is None:
@@ -1210,7 +1211,7 @@ class Transport(threading.Thread, ClosingContextManager):
         start_ts = time.time()
         while True:
             event.wait(0.1)
-            #print("[open_channel] open channel Ok?")
+            print_prv("[open_channel] open channel Ok?")
             if not self.active:
                 e = self.get_exception()
                 if e is None:
@@ -1278,17 +1279,17 @@ class Transport(threading.Thread, ClosingContextManager):
         callbacktable = {"timeout":timeout}
         if not callbydoing:
             if not self._insert_func(sys._getframe().f_code.co_name, locinput):
-                #print("[open_channel_noblocking]: in todo list")
+                print_prv("[open_channel_noblocking]: in todo list")
                 return
         else:
             self._insert_func_when_doing(sys._getframe().f_code.co_name, locinput, "open_channel_noblocking_callback", callbacktable)
-        #print("[open_channel_noblocking]: runing")
+        print_prv("[open_channel_noblocking]: runing")
         if not self.active:
             raise SSHException("SSH session not active")
         timeout = 3600 if timeout is None else timeout
-        #print("    [open_channel_noblocking]: try to get lock")
+        print_prv("    [open_channel_noblocking]: try to get lock")
         self.lock.acquire()
-        #print("    [open_channel_noblocking]  get lock ok")
+        print_prv("    [open_channel_noblocking]  get lock ok")
         try:
             window_size = self._sanitize_window_size(window_size)
             max_packet_size = self._sanitize_packet_size(max_packet_size)
@@ -1309,7 +1310,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 m.add_int(src_addr[1])
             chan = Channel(chanid)
             self._channels.put(chanid, chan)
-            #print("    [open_channel_noblocking]: chanid:%u" %chanid)
+            print_prv("    [open_channel_noblocking]: chanid:%u" %chanid)
             self._my_chan_temp_forWeakref = chan
             self.channel_events[chanid] = event = threading.Event()
             callbacktable["event"] = event
@@ -1325,7 +1326,7 @@ class Transport(threading.Thread, ClosingContextManager):
         #move to callback
         while True:
             event.wait(0.1)
-            #print("[open_channel] open channel Ok?")
+            print_prv("[open_channel] open channel Ok?")
             if not self.active:
                 e = self.get_exception()
                 if e is None:
@@ -1354,9 +1355,9 @@ class Transport(threading.Thread, ClosingContextManager):
     ):
         locinput = locals()
         if not self._insert_func(sys._getframe().f_code.co_name, locinput, "get_pty_noblocking_callback", {}):
-            #print("[get_pty_noblocking]: in todo list")
+            print_prv("[get_pty_noblocking]: in todo list")
             return
-        #print("[get_pty_noblocking]: call function in transport")
+        print_prv("[get_pty_noblocking]: call function in transport")
         self._my_chan.get_pty_noblocking(term, width, height, width_pixels, height_pixels)
 
     def get_pty_noblocking_callback(self):
@@ -1365,7 +1366,7 @@ class Transport(threading.Thread, ClosingContextManager):
     def invoke_shell_noblocking(self):
         locinput = locals()
         if not self._insert_func(sys._getframe().f_code.co_name, locinput, "invoke_shell_noblocking_callback", {}):
-            #print("[invoke_shell_noblocking]: in todo list")
+            print_prv("[invoke_shell_noblocking]: in todo list")
             return
         self._my_chan.invoke_shell_noblocking()
     def invoke_shell_noblocking_callback(self):
@@ -1878,10 +1879,10 @@ class Transport(threading.Thread, ClosingContextManager):
             # if password auth isn't allowed, but keyboard-interactive *is*,
             # try to fudge it
             if not fallback or ("keyboard-interactive" not in e.allowed_types):
-                #print("[auth_password]: raise here?")
+                print_prv("[auth_password]: raise here?")
                 raise
             try:
-                #print("[auth_password]: come to here?")
+                print_prv("[auth_password]: come to here?")
                 def handler(title, instructions, fields):
                     if len(fields) > 1:
                         raise SSHException("Fallback authentication failed.")
@@ -1898,21 +1899,21 @@ class Transport(threading.Thread, ClosingContextManager):
                 # attempt failed; just raise the original exception
                 raise e
         except AuthenticationException as e:
-             #print("[auth_password] raise e")
+             print_prv("[auth_password] raise e")
              raise e
              
     def auth_password_noblocking_callback(self, fallback, my_event):
-        #print("[auth_password_noblocking_callback] get return")
+        print_prv("[auth_password_noblocking_callback] get return")
         try:
             try:
                 return self.auth_handler.wait_for_response(my_event)
             finally:
-                #print("[auth_password_noblocking_callback] finally")
+                print_prv("[auth_password_noblocking_callback] finally")
                 pass
         except BadAuthenticationType as e:
             # if password auth isn't allowed, but keyboard-interactive *is*,
             # try to fudge it
-            #print("[auth_password_noblocking_callback] 11" )
+            print_prv("[auth_password_noblocking_callback] 11" )
             raise
             '''
             #not support auth_interactive
@@ -1937,7 +1938,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 raise e
             '''
         except AuthenticationException as e:
-             #print("[auth_password_noblocking_callback] raise e")
+             print_prv("[auth_password_noblocking_callback] raise e")
              raise e
 
     def auth_password_noblocking(self, username, password, event=None, fallback=True):
@@ -1990,9 +1991,9 @@ class Transport(threading.Thread, ClosingContextManager):
         locinput = locals()
         para_in_auth_password = {"fallback":fallback}
         if not self._insert_func(sys._getframe().f_code.co_name, locinput, "auth_password_noblocking_callback", para_in_auth_password):
-            #print("[auth_password_noblocking]: in todo list")
+            print_prv("[auth_password_noblocking]: in todo list")
             return
-        #print("[auth_password_noblocking] running")
+        print_prv("[auth_password_noblocking] running")
         if (not self.active) or (not self.initial_kex_done):
             # we should never try to send the password unless we're on a secure
             # link
@@ -2327,7 +2328,7 @@ class Transport(threading.Thread, ClosingContextManager):
         start = time.time()
         while True:
             self.clear_to_send.wait(0.1)
-            #print("    [_send_user_message]:waiting")
+            print_prv("    [_send_user_message]:waiting")
             if not self.active:
                 self._log(
                     DEBUG, "Dropping user packet because connection is dead."
@@ -2504,7 +2505,7 @@ class Transport(threading.Thread, ClosingContextManager):
         # interpreter shutdown.
         self.sys = sys
         import threading
-        #print("transport run =>", threading.currentThread().getName())
+        print_prv("transport run =>", threading.currentThread().getName())
         # active=True occurs before the thread is launched, to avoid a race
         _active_threads.append(self)
         tid = hex(long(id(self)) & xffffffff)
@@ -2537,14 +2538,14 @@ class Transport(threading.Thread, ClosingContextManager):
                 self._expect_packet(MSG_KEXINIT)
 
                 while self.active:
-                    #print("run loop2.", threading.currentThread().getName())
+                    print_prv("run loop2.", threading.currentThread().getName())
                     if self.packetizer.need_rekey() and not self.in_kex:
-                        #print("run  1!")
+                        print_prv("run  1!")
                         self._send_kex_init()
                     try:
-                        #print(" ==> readmsg")
+                        print_prv(" ==> readmsg")
                         ptype, m = self.packetizer.read_message()
-                        #print(" ==> get msg :type[", ptype, "] data :", m)
+                        print_prv(" ==> get msg :type[", ptype, "] data :", m)
                     except NeedRekeyException:
                         continue
                     if ptype == MSG_IGNORE:
@@ -2566,16 +2567,16 @@ class Transport(threading.Thread, ClosingContextManager):
                         if (ptype >= 30) and (ptype <= 41):
                             self.kex_engine.parse_next(ptype, m)
                             continue
-                    #print("run  2!")
+                    print_prv("run  2!")
                     if ptype in self._handler_table:
-                        #print("run  3!")
+                        print_prv("run  3!")
                         error_msg = self._ensure_authed(ptype, m)
                         if error_msg:
                             self._send_message(error_msg)
                         else:
                             self._handler_table[ptype](self, m)
                     elif ptype in self._channel_handler_table:
-                        #print("run  4!")
+                        print_prv("run  4!")
                         chanid = m.get_int()
                         chan = self._channels.get(chanid)
                         if chan is not None:
@@ -2599,13 +2600,13 @@ class Transport(threading.Thread, ClosingContextManager):
                         self.auth_handler is not None
                         and ptype in self.auth_handler._handler_table
                     ):
-                        #print("run  5!")
+                        print_prv("run  5!")
                         handler = self.auth_handler._handler_table[ptype]
                         handler(self.auth_handler, m)
                         if len(self._expected_packet) > 0:
                             continue
                     else:
-                        #print("run  6!")
+                        print_prv("run  6!")
                         # Respond with "I don't implement this particular
                         # message type" message (unless the message type was
                         # itself literally MSG_UNIMPLEMENTED, in which case, we
@@ -2621,7 +2622,7 @@ class Transport(threading.Thread, ClosingContextManager):
                             msg.add_int(m.seqno)
                             self._send_message(msg)
                     self.packetizer.complete_handshake()
-                #print("run while end !")
+                print_prv("run while end !")
             except SSHException as e:
                 self._log(ERROR, "Exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
@@ -2675,7 +2676,7 @@ class Transport(threading.Thread, ClosingContextManager):
         deal timer with current statue.
         '''
     def _deal_fsm_set(self, fsm):
-        #print("[_deal_fsm_set] : fsm %u to %u"  %(self._deal_state, fsm))
+        print_prv("[_deal_fsm_set] : fsm %u to %u"  %(self._deal_state, fsm))
         self._deal_state = fsm
     def _deal_fsm_get(self):
         return self._deal_state
@@ -2699,7 +2700,7 @@ class Transport(threading.Thread, ClosingContextManager):
 
         # Hold reference to 'sys' so we can test sys.modules to detect
         # interpreter shutdown.
-        #print("[run_for_noblocking] :come into here")
+        print_prv("[run_for_noblocking] :come into here")
         self._timeout_deal()
         try:
            self._deal_fsm()
@@ -2764,10 +2765,10 @@ class Transport(threading.Thread, ClosingContextManager):
                     return
                 while self.active:
                     if self.packetizer.need_rekey() and not self.in_kex:
-                        #print("    [run_for_noblocking]run  1!")
+                        print_prv("    [run_for_noblocking]run  1!")
                         self._send_kex_init()
                     try:
-                        #print("    [run_for_noblocking] ==> readmsg")
+                        print_prv("    [run_for_noblocking] ==> readmsg")
                         ptype, m = self.packetizer.read_message()
                         cmdname = str(ptype)
                         if ptype in MSG_NAMES:
@@ -2775,7 +2776,7 @@ class Transport(threading.Thread, ClosingContextManager):
                                 cmdname = MSG_NAMES[ptype] + "[" + str(ptype) + "]"
                             except:
                                 pass
-                        #print("    [run_for_noblocking] ==> get msg, type[" , cmdname , "] Data=>:")
+                        print_prv("    [run_for_noblocking] ==> get msg, type[" , cmdname , "] Data=>:")
                     except NeedRekeyException:
                         break
 
@@ -2804,9 +2805,9 @@ class Transport(threading.Thread, ClosingContextManager):
                             self.kex_engine.parse_next(ptype, m)
                             #continue
                             break
-                    ##print("run  2!")
+                    #print_prv("run  2!")
                     if ptype in self._handler_table:
-                        #print("    [run_for_noblocking]run  3!")
+                        print_prv("    [run_for_noblocking]run  3!")
                         error_msg = self._ensure_authed(ptype, m)
                         if error_msg:
                             self._send_message(error_msg)
@@ -2821,7 +2822,7 @@ class Transport(threading.Thread, ClosingContextManager):
                                     if_close = True
                             
                     elif ptype in self._channel_handler_table:
-                        #print("    [run_for_noblocking]run  4!")
+                        print_prv("    [run_for_noblocking]run  4!")
                         chanid = m.get_int()
                         chan = self._channels.get(chanid)
                         if chan is not None:
@@ -2858,7 +2859,7 @@ class Transport(threading.Thread, ClosingContextManager):
                         self.auth_handler is not None
                         and ptype in self.auth_handler._handler_table
                     ):
-                        #print("    [run_for_noblocking]run  5!")
+                        print_prv("    [run_for_noblocking]run  5!")
                         handler = self.auth_handler._handler_table[ptype]
                         handler(self.auth_handler, m)
                         #is ugly ,change it   MSG_USERAUTH_FAILURE 51, MSG_USERAUTH_SUCCESS  52
@@ -2872,7 +2873,7 @@ class Transport(threading.Thread, ClosingContextManager):
                             #continue
                             break
                     else:
-                        #print("     [run_for_noblocking]run  6!")
+                        print_prv("     [run_for_noblocking]run  6!")
                         # Respond with "I don't implement this particular
                         # message type" message (unless the message type was
                         # itself literally MSG_UNIMPLEMENTED, in which case, we
@@ -2890,20 +2891,20 @@ class Transport(threading.Thread, ClosingContextManager):
                     break
                     #============>>>>deal it
                     #self.packetizer.complete_handshake()
-                #print("    [run_for_noblocking]  End !")
+                print_prv("    [run_for_noblocking]  End !")
             except SSHException as e:
-                #print("    [run_for_noblocking]  E 1 !")
+                print_prv("    [run_for_noblocking]  E 1 !")
                 self._log(ERROR, "Exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
                 if_close = True
             except EOFError as e:
-                #print("    [run_for_noblocking]  E 2 !")
+                print_prv("    [run_for_noblocking]  E 2 !")
                 self._log(DEBUG, "EOF in transport thread")
                 self.saved_exception = e
                 if_close = True
             except socket.error as e:
-                #print("    [run_for_noblocking]  E 3 !")
+                print_prv("    [run_for_noblocking]  E 3 !")
                 if type(e.args) is tuple:
                     if e.args:
                         emsg = "{} ({:d})".format(e.args[1], e.args[0])
@@ -2915,14 +2916,14 @@ class Transport(threading.Thread, ClosingContextManager):
                 self.saved_exception = e
                 if_close = True
             except Exception as e:
-                #print("     [run_for_noblocking]  E 4 !", str(e))
+                print_prv("     [run_for_noblocking]  E 4 !", str(e))
                 self._log(ERROR, "Unknown exception: " + str(e))
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
                 if_close = True
             #add by bwz
             except AuthenticationException as e:
-                #print("     Other Except ,")
+                print_prv("     Other Except ,")
                 self.saved_exception = e
                 if_close = True
                 
@@ -3494,7 +3495,7 @@ class Transport(threading.Thread, ClosingContextManager):
         self.clear_to_send_lock.acquire()
         try:
             self.clear_to_send.set()
-            #print("    [_parse_newkeys]: clear_to_send seted")
+            print_prv("    [_parse_newkeys]: clear_to_send seted")
         finally:
             self.clear_to_send_lock.release()
         return
@@ -3558,22 +3559,22 @@ class Transport(threading.Thread, ClosingContextManager):
         server_window_size = m.get_int()
         server_max_packet_size = m.get_int()
         chan = self._channels.get(chanid)
-        #print("[_parse_channel_open_success]: 1, chanid:%u" %chanid)
+        print_prv("[_parse_channel_open_success]: 1, chanid:%u" %chanid)
         print(self._channels)
         if chan is None:
-            #print("    [_parse_channel_open_success]: 2")
+            print_prv("    [_parse_channel_open_success]: 2")
             self._log(WARNING, "Success for unrequested channel! [??]")
             return
         self.lock.acquire()
         try:
-            #print("    [_parse_channel_open_success]: try")
+            print_prv("    [_parse_channel_open_success]: try")
             chan._set_remote_channel(
                 server_chanid, server_window_size, server_max_packet_size
             )
             self._log(DEBUG, "Secsh channel {:d} opened.".format(chanid))
-            #print("    [_parse_channel_open_success]: channel opened")
+            print_prv("    [_parse_channel_open_success]: channel opened")
             if chanid in self.channel_events:
-                #print("    [_parse_channel_open_success] event %s",chanid)
+                print_prv("    [_parse_channel_open_success] event %s",chanid)
                 self.channel_events[chanid].set()
                 del self.channel_events[chanid]
         finally:
@@ -3596,7 +3597,7 @@ class Transport(threading.Thread, ClosingContextManager):
         try:
             self.saved_exception = ChannelException(reason, reason_text)
             if chanid in self.channel_events:
-                #print("[_parse_channel_open_failure] event %s",chanid)
+                print_prv("[_parse_channel_open_failure] event %s",chanid)
                 self._channels.delete(chanid)
                 if chanid in self.channel_events:
                     self.channel_events[chanid].set()
@@ -3871,7 +3872,7 @@ class ChannelMap(object):
             self._lock.release()
 
     def delete(self, chanid):
-        #print("Channel Map del :%u" %chanid)
+        print_prv("Channel Map del :%u" %chanid)
         self._lock.acquire()
         try:
             try:
@@ -3916,10 +3917,10 @@ class MyEpoll_forSSH:
     __fd_to_socket_info = {}
     __epoll = None
     def __new__(self):
-        #print("new:", self)
+        print_prv("new:", self)
         pass
     def __init__(self):
-        #print("init:", self)
+        print_prv("init:", self)
         self.__epoll = select.epoll()
     def add_socket(self, sockid , info = None):
         self.__epoll.register(sockid.fileno(), select.EPOLLIN)
@@ -3959,14 +3960,14 @@ class threadm_forSSH(threading.Thread):
             if evs is None:
                 self.repCount = self.repCount + 1
                 if self.repCount > 10:
-                    #print("Timeout 10")
+                    print_prv("Timeout 10")
                     self.repCount = 0
-                ##print("Timeout 10")
+                #print_prv("Timeout 10")
                 pass
             else:
                 print(evs)
                 for fd in evs:
-                    #print("sock [%s]===> %s"  %(evs[fd]["info"]["msg"], "***"))
+                    print_prv("sock [%s]===> %s"  %(evs[fd]["info"]["msg"], "***"))
                     for conn in self.connectList:
                         sockid = self.mypoll.get_socket_byfd(fd)
                         if (sockid == conn.sock):
@@ -3985,7 +3986,7 @@ class threadm_forSSH(threading.Thread):
        if self.cuCount > 0:
            self.cuCount = self.cuCount - 1
        else:
-           #print("Del socket failed!")
+           print_prv("Del socket failed!")
            pass
 
 

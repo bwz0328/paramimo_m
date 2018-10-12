@@ -70,7 +70,7 @@ from paramiko.ssh_exception import (
 )
 from paramiko.server import InteractiveQuery
 from paramiko.ssh_gss import GSSAuth, GSS_EXCEPTIONS
-
+from prv_log import print_prv
 
 class AuthHandler(object):
     """
@@ -225,18 +225,18 @@ class AuthHandler(object):
 
     def wait_for_response(self, event):
         max_ts = None
-        #print("[wait_for_response]: 1")
+        print_prv("[wait_for_response]: 1")
         if self.transport.auth_timeout is not None:
-            #print("[wait_for_response]: 2")
+            print_prv("[wait_for_response]: 2")
             max_ts = time.time() + self.transport.auth_timeout
         while True:
             event.wait(0.1)
             if not self.transport.is_active():
-                #print("[wait_for_response]: 3")
+                print_prv("[wait_for_response]: 3")
                 e = self.transport.get_exception()
-                #print("[wait_for_response]: 4")
+                print_prv("[wait_for_response]: 4")
                 if (e is None) or issubclass(e.__class__, EOFError):
-                    #print("[wait_for_response]: 5")
+                    print_prv("[wait_for_response]: 5")
                     e = AuthenticationException("Authentication failed.")
                 raise e
             if event.is_set():
@@ -245,16 +245,16 @@ class AuthHandler(object):
                 raise AuthenticationException("Authentication timeout.")
 
         if not self.is_authenticated():
-            #print("[wait_for_response]: 6")
+            print_prv("[wait_for_response]: 6")
             e = self.transport.get_exception()
-            #print("[wait_for_response]: 7", e)
+            print_prv("[wait_for_response]: 7", e)
             if e is None:
                 e = AuthenticationException("Authentication failed.")
             # this is horrible.  Python Exception isn't yet descended from
             # object, so type(e) won't work. :(
             if issubclass(e.__class__, PartialAuthentication):
                 return e.allowed_types
-            #print("[wait_for_response]: 8")
+            print_prv("[wait_for_response]: 8")
             raise e
         return []
 

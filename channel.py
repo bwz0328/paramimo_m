@@ -49,7 +49,7 @@ from paramiko.file import BufferedFile
 from paramiko.buffered_pipe import BufferedPipe, PipeTimeout
 from paramiko import pipe
 from paramiko.util import ClosingContextManager
-
+from prv_log import print_prv
 
 def open_only(func):
     """
@@ -187,7 +187,7 @@ class Channel(ClosingContextManager):
             `.SSHException` -- if the request was rejected or the channel was
             closed
         """
-        #print("[get_pty]:run")
+        print_prv("[get_pty]:run")
         m = Message()
         m.add_byte(cMSG_CHANNEL_REQUEST)
         m.add_int(self.remote_chanid)
@@ -234,7 +234,7 @@ class Channel(ClosingContextManager):
             `.SSHException` -- if the request was rejected or the channel was
             closed
         """
-        #print("[get_pty]:run")
+        print_prv("[get_pty]:run")
         m = Message()
         m.add_byte(cMSG_CHANNEL_REQUEST)
         m.add_int(self.remote_chanid)

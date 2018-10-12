@@ -26,7 +26,7 @@ import time
 
 from paramiko.ssh_exception import ProxyCommandFailure
 from paramiko.util import ClosingContextManager
-
+from prv_log import print_prv
 
 class ProxyCommand(ClosingContextManager):
     """

@@ -41,7 +41,7 @@ from paramiko.common import (
 from paramiko.py3compat import u, byte_ord
 from paramiko.ssh_exception import SSHException, ProxyCommandFailure
 from paramiko.message import Message
-
+from prv_log import print_prv
 
 def compute_hmac(key, message, digest_class):
     return HMAC(key, message, digest_class).digest()
@@ -389,7 +389,7 @@ class Packetizer(object):
             if self.__compress_engine_out is not None:
                 data = self.__compress_engine_out(data)
             packet = self._build_packet(data)
-            #print("[send_message] Write packet <{}[{}]>, length {}".format(cmd_name, cmd, orig_len))
+            print_prv("[send_message] Write packet <{}[{}]>, length {}".format(cmd_name, cmd, orig_len))
             if self.__dump_packets:
                 self._log(
                     DEBUG,
@@ -560,7 +560,7 @@ class Packetizer(object):
         while True:
             try:
                 x = self.__socket.recv(128)
-                #print("read" ,x)
+                print_prv("read" ,x)
                 if len(x) == 0:
                     raise EOFError()
                 break
