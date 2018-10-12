@@ -567,7 +567,7 @@ class Packetizer(object):
             except socket.timeout:
                 pass
             except EnvironmentError as e:
-                print(str(e))
+                print_prv(str(e))
                 if first_arg(e) == errno.EINTR:
                     pass
                 else:

@@ -596,7 +596,7 @@ class Transport(threading.Thread, ClosingContextManager):
         else:
             self._fun_todo_list.append({"funcName":funcName, "funcPara":funcPara, "funcCallback":funcCallback, "funcCbPara":funcCbPara})
             for funccc in self._fun_todo_list:
-                print(funccc["funcName"])
+                print_prv(funccc["funcName"])
             self._taskListLock.release()
             return False
     def _insert_func_when_doing(self, funcName, funcPara, funcCallback = None, funcCbPara = {}):
@@ -662,7 +662,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 if 'self' in para:
                     para.pop("self")
                 print_prv("    [_completion_callback] : call next function " + todolist["funcName"] , para)
-                print(self)
+                print_prv(self)
                 try:
                     evalstr = "self." + todolist["funcName"] + "(**para)"
                     print_prv("    [_completion_callback]" + evalstr)
@@ -673,7 +673,7 @@ class Transport(threading.Thread, ClosingContextManager):
                     print_prv("    [_completion_callback]" + evalstr)
                     eval(evalstr)
                     pass
-                print(self)
+                print_prv(self)
             except:
                 raise
 
@@ -3562,7 +3562,7 @@ class Transport(threading.Thread, ClosingContextManager):
         server_max_packet_size = m.get_int()
         chan = self._channels.get(chanid)
         print_prv("[_parse_channel_open_success]: 1, chanid:%u" %chanid)
-        print(self._channels)
+        print_prv(self._channels)
         if chan is None:
             print_prv("    [_parse_channel_open_success]: 2")
             self._log(WARNING, "Success for unrequested channel! [??]")
@@ -3967,7 +3967,7 @@ class threadm_forSSH(threading.Thread):
                 #print_prv("Timeout 10")
                 pass
             else:
-                print(evs)
+                print_prv(evs)
                 for fd in evs:
                     print_prv("sock [%s]===> %s"  %(evs[fd]["info"]["msg"], "***"))
                     for conn in self.connectList:
