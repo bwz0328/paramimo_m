@@ -2680,8 +2680,11 @@ class Transport(threading.Thread, ClosingContextManager):
     def _deal_fsm_get(self):
         return self._deal_state
     def _deal_fsm(self):
-        if (self._deal_state == STATE_BANNER_S):
-            self._check_banner_noblocking()
+        try:
+            if (self._deal_state == STATE_BANNER_S):
+                self._check_banner_noblocking()
+        except:
+            raise
 
     def reg_callback(self, func, para = {}):
         self._connectOkCallback = func
