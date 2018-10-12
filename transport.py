@@ -136,9 +136,9 @@ STATE_S_WAITING_PACKET = 100
 def print_instance(func):
     def _print_i(self, *args, **kwds):
         #print
-        print_prv("\n[deal instance] ======>:%s [%s]"  %(str(self.sock) , self))
+        print_prv("\n[deal instance] ======>:%s [%s][%s]"  %(str(self.sock) , self, self._transName))
         ret = func(self, *args, **kwds)
-        print_prv("[deal instance] ======>:%s [%s] End!\n"  %(str(self.sock), self))
+        print_prv("[deal instance] ======>:%s [%s][%s] End!\n"  %(str(self.sock), self, self._transName))
         return ret
 
     return _print_i
@@ -314,6 +314,7 @@ class Transport(threading.Thread, ClosingContextManager):
         gss_kex=False,
         gss_deleg_creds=True,
         mode = 1,
+        TransName = "",
     ):
         """
         Create a new SSH session over an existing socket, or socket-like
@@ -361,6 +362,7 @@ class Transport(threading.Thread, ClosingContextManager):
         """
         self.active = False
         self.hostname = None
+        self._transName = TransName
 
         if isinstance(sock, string_types):
             # convert "host:port" into (host, port)
